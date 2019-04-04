@@ -4,9 +4,11 @@ from torch.utils.data import Dataset
 
 
 class PendulumDataset(Dataset):
-    def __init__(self):
-        # self.data = np.load('./pend_data/pendulum_6k_disc.npy')
-        self.data = np.load('./pend_data/pendulum_6ktraj_cont_100steps.npy')
+    def __init__(self, dataset_type=None):
+        if dataset_type == 'train':
+            self.data = np.load('./pend_data/pendulum_100H_5000N.npy')
+        elif dataset_type == 'test':
+            self.data = np.load('./pend_data/pendulum_100H_1000N.npy')
 
     def __getitem__(self, index):
         traj_i = self.data[index]

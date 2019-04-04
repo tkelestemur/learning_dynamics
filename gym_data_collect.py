@@ -5,15 +5,15 @@ import numpy as np
 def pendulum():
     env = gym.make('Pendulum-v0')
 
-    num_runs = 20
-    num_steps = 200
+    num_runs = 1000
+    num_steps = 100
     actions = np.array([-2, -1, 0, 1, 2], dtype=np.float32)
     trajectories = []
     for i in range(num_runs):
         obs = env.reset()
         traj = []
         for j in range(num_steps):
-            env.render()
+            # env.render()
 
             a = env.action_space.sample()
             # a_idx = np.random.randint(0, 5)
@@ -26,8 +26,6 @@ def pendulum():
             # for k in range(1):
             #     obs, reward, done, _ = env.step(np.array([a]))
             next_obs, reward, done, _ = env.step(a)
-            if done:
-                break
             data_t = np.hstack((obs, a, next_obs))
             traj += [data_t]
             obs = next_obs
@@ -39,7 +37,7 @@ def pendulum():
     trajectories = np.array(trajectories)
     print(trajectories.shape)
 
-    # np.save('./pend_data/pendulum_6ktraj_cont_100steps.npy', trajectories)
+    np.save('./pend_data/pendulum_100H_1000N.npy', trajectories)
     env.close()
 
 
