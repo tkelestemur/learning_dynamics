@@ -41,9 +41,9 @@ class ActionCondLSTM(nn.Module):
         # action transformation
         # state_and_action = torch.cat((self.f_enc(encoded), self.f_actions(action)), dim=2)
 
-        x_hat = self.f_dec(self.f_enc(encoded) + self.f_actions(action))
+        x_next = self.f_dec(self.f_enc(encoded) + self.f_actions(action))
 
-        return x_hat
+        return x_next
 
     # def forward(self, x):
     #     # h_t = torch.zeros(x.size(0), self.hidden_size, device='cuda')
@@ -102,10 +102,10 @@ class ActionCondLSTM(nn.Module):
                 # forward pass
                 optimizer.zero_grad()
                 target = batch[:, :, 4:7]
-                x_hat = self.forward(batch)
+                x_next = self.forward(batch)
 
                 # backward pass
-                loss = loss_func(input=x_hat, target=target)
+                loss = loss_func(input=x_next, target=target)
                 loss.backward()
                 train_loss += loss.item()
 
