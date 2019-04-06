@@ -9,14 +9,15 @@ from data import PendulumDataset
 import numpy as np
 
 
-class ActionCondCLSTM(nn.Module):
+class ActionCondLSTM(nn.Module):
 
-    def __init__(self, input_size, action_size, hidden_size, num_layers):
-        super(ActionCondCLSTM, self).__init__()
+    def __init__(self, input_size, action_size, hidden_size, num_layers, checkpoint_path=None):
+        super(ActionCondLSTM, self).__init__()
 
         self.action_size = action_size
         self.input_size = input_size
         self.hidden_size = hidden_size
+        self.checkpoint_path = checkpoint_path
 
         self.lstm = nn.LSTM(input_size=input_size, hidden_size=hidden_size,
                             num_layers=num_layers, batch_first=True)
@@ -28,7 +29,7 @@ class ActionCondCLSTM(nn.Module):
 
         self.f_actions = nn.Linear(in_features=action_size, out_features=hidden_size)
         self.f_enc = nn.Linear(in_features=hidden_size, out_features=hidden_size)
-        self.f_dec = nn.Linear(in_features=2*hidden_size, out_features=input_size)
+        self.f_dec = nn.Linear(in_features=hidden_size, out_features=input_size)
 
     def forward(self, x):
 
@@ -36,16 +37,11 @@ class ActionCondCLSTM(nn.Module):
         states = x[:, :, 0:3]
         action = x[:, :, 3:4]
 
-        # encoded = F.relu(self.f_states_enc(states))
         encoded, hidden = self.lstm(states)
-        # print(encoded.shape)
-
         # action transformation
-        state_and_action = torch.cat((self.f_enc(encoded), self.f_actions(action)), dim=2)
-        # print(state_and_action.shape)
-        x_hat = self.f_dec(state_and_action)
+        # state_and_action = torch.cat((self.f_enc(encoded), self.f_actions(action)), dim=2)
 
-        # decoded = F.relu(self.f_states_dec(x_hat))
+        x_hat = self.f_dec(self.f_enc(encoded) + self.f_actions(action))
 
         return x_hat
 
@@ -77,7 +73,6 @@ class ActionCondCLSTM(nn.Module):
     #     # print('Shat shape: {}'.format(S_hat.shape))
     #     return S_hat
 
-
     def evaluate_model(self, test_data_loader=None, device=torch.device('cpu')):
         # self.eval()
         loss_func = nn.MSELoss()
@@ -93,10 +88,9 @@ class ActionCondCLSTM(nn.Module):
             valid_loss /= len(test_data_loader)
         return valid_loss
 
-    def train_model(self, num_epochs=1, train_data_loader=None, test_data_loader=None, device=None):
+    def train_model(self, num_epochs=1, train_data_loader=None, test_data_loader=None, device=None, save_model=False):
         self.train()
         loss_func = nn.MSELoss()
-        # loss_func = nn.BCELoss()
         optimizer = optim.Adam(params=self.parameters(), lr=1e-3)
 
         epoch_loss = []
@@ -120,10 +114,18 @@ class ActionCondCLSTM(nn.Module):
 
                 # print('Batch loss: {}'.format(loss.item()))
             valid_loss = self.evaluate_model(test_data_loader=test_data_loader, device=device)
-            train_loss  = train_loss / len(train_data_loader)
+            # valid_loss = 0
+            train_loss = train_loss / len(train_data_loader)
 
-            print('Epoch {} Train Loss: {} Validation Loss: {}'.format(epoch, train_loss, valid_loss))
+            print('Epoch {} Train Loss: {:.6f} Validation Loss: {:.6f}'.format(epoch, train_loss, valid_loss))
             epoch_loss += [np.hstack((train_loss, valid_loss))]
+
+            if save_model:
+                if not self.checkpoint_path:
+                    print('Checkpoint pat is not specified! Can\'t save the model..')
+                else:
+                    with open(self.checkpoint_path, 'wb') as f:
+                        torch.save(self.state_dict(), f)
 
         epoch_loss = np.array(epoch_loss)
 
@@ -131,17 +133,20 @@ class ActionCondCLSTM(nn.Module):
 
 
 if __name__ == '__main__':
-
     # Load dataset
     pend_train_data = PendulumDataset('train')
     pend_test_data = PendulumDataset('test')
 
-    pend_train_loader = DataLoader(dataset=pend_train_data, batch_size=8, drop_last=True,
+    pend_train_loader = DataLoader(dataset=pend_train_data, batch_size=32, drop_last=True,
                                    shuffle=False, num_workers=4)
 
-    pend_train_loader = DataLoader(dataset=pend_test_data, batch_size=len(pend_test_data),
-                                   drop_last=False, shuffle=False, num_workers=2)
+    pend_test_loader = DataLoader(dataset=pend_test_data, batch_size=len(pend_test_data),
+                                  drop_last=False, shuffle=False, num_workers=2)
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-    model = ActionCondCLSTM(input_size=3, action_size=1, hidden_size=128, num_layers=1).to(device)
-    model.train_model(num_epochs=2000, train_data_loader=pend_train_loader, test_data_loader=pend_train_loader, device=device)
+    checkpoint_path = './checkpoints/checkpoint_5k.pt'
+    model = ActionCondLSTM(input_size=3, action_size=1, hidden_size=16,
+                           num_layers=1, checkpoint_path=checkpoint_path).to(device)
+
+    model.train_model(num_epochs=1000, train_data_loader=pend_train_loader,
+                      test_data_loader=pend_test_loader, device=device, save_model=True)

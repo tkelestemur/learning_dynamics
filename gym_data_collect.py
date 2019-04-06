@@ -42,10 +42,10 @@ def pendulum():
 
 
 def inverted_pendulum():
-    env = gym.make('InvertedDoublePendulum-v2')
+    env = gym.make('InvertedPendulum-v2')
 
     num_runs = 6000
-    num_steps = 50
+    num_steps = 100
 
     trajectories = []
     for i in range(num_runs):
@@ -77,5 +77,5 @@ def inverted_pendulum():
 
 
 if __name__ == '__main__':
-    pendulum()
-    # inverted_pendulum()
+    # pendulum()
+    inverted_pendulum()
