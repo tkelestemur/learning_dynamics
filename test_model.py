@@ -20,19 +20,14 @@ def test_pendulum():
     fig.suptitle('Pendulum')
     ax.set_xlabel('timestep')
     ax.set_ylabel('velocity')
-    ax.legend(('simulation', 'model prediction'))
+    ax.legend(['simulation'])
 
     # Environment
     env = gym.make('Pendulum-v0')
     state_true = env.reset()
-    state_pred = state_true
-
     print('RESETTING!')
+    state_pred = state_true
     horizon_length = 100
-
-    # states_true = np.array([])
-    # states_pred = np.array([])
-
 
     for i in range(horizon_length):
         a = env.action_space.sample()
@@ -61,8 +56,8 @@ def test_pendulum():
         # # simulator
         next_state_true, r, d, _ = env.step(a)
 
-        ax.plot(states_true[:, 2], c='r')
-        ax.plot(states_actions[:, 2], c='b')
+        ax.plot(states_true[:, 0], c='r')
+        ax.plot(states_actions[:, 0], c='b')
         plt.pause(0.05)
 
     plt.show()
