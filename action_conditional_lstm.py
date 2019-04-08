@@ -2,10 +2,7 @@ from __future__ import print_function
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from torch import optim
-from torch.utils.data import DataLoader
-from data import PendulumDataset
 import numpy as np
 
 
@@ -67,12 +64,13 @@ class ActionCondLSTM(nn.Module):
             valid_loss /= len(test_data_loader)
         return valid_loss
 
-    def train_model(self, num_epochs=1, train_data_loader=None, test_data_loader=None, device=None, save_model=False):
+    def train_model(self, num_epochs=1, train_data_loader=None, test_data_loader=None, device=None, save_model=False, future_steps=1):
         self.train()
 
         loss_func = nn.MSELoss()
         optimizer = optim.Adam(params=self.parameters(), lr=1e-3)
 
+        print('Starting training...\nNumber of future step predictions: {}'.format(future_steps))
         epoch_loss = []
         for epoch in range(num_epochs):
             train_loss = 0
@@ -82,15 +80,16 @@ class ActionCondLSTM(nn.Module):
                 actions = actions.to(device)
                 next_states = next_states.to(device)
 
-                # forward pass
                 optimizer.zero_grad()
-                next_states_pred = self.forward(states, actions)
-
-                next_next_states_pred = self.forward(next_states_pred[:, :-1, :], actions[:, 1:, :])
-
-                # backward pass
-                loss = 0.5 * (loss_func(input=next_states_pred, target=next_states) +
-                              loss_func(input=next_next_states_pred, target=next_states[:, 1:, :]))
+                # forward pass
+                if future_steps == 1:
+                    next_states_pred = self.forward(states, actions)
+                    loss = loss_func(input=next_states_pred, target=next_states)
+                elif future_steps == 2:
+                    next_states_pred = self.forward(states, actions)
+                    next_next_states_pred = self.forward(next_states_pred[:, :-1, :], actions[:, 1:, :])
+                    loss = 0.5 * (loss_func(input=next_states_pred, target=next_states) +
+                                  loss_func(input=next_next_states_pred, target=next_states[:, 1:, :]))
 
                 loss.backward()
                 train_loss += loss.item()
@@ -102,7 +101,7 @@ class ActionCondLSTM(nn.Module):
             # valid_loss = 0
             train_loss = train_loss / len(train_data_loader)
 
-            print('Epoch {} Train Loss: {:.6f} Validation Loss: {:.6f}'.format(epoch, train_loss, valid_loss))
+            print('Epoch {} Train Loss: {:.6f} Validation Loss: {:.6f}'.format(epoch+1, train_loss, valid_loss))
             epoch_loss += [np.hstack((train_loss, valid_loss))]
 
             if save_model:
@@ -116,24 +115,3 @@ class ActionCondLSTM(nn.Module):
             epoch_loss = np.array(epoch_loss)
             np.savetxt(self.loss_path, epoch_loss, delimiter=',')
 
-
-if __name__ == '__main__':
-    # Load dataset
-    pend_train_data = PendulumDataset('train')
-    pend_test_data = PendulumDataset('test')
-
-    pend_train_loader = DataLoader(dataset=pend_train_data, batch_size=32, drop_last=True,
-                                   shuffle=False, num_workers=4)
-
-    pend_test_loader = DataLoader(dataset=pend_test_data, batch_size=len(pend_test_data),
-                                  drop_last=False, shuffle=False, num_workers=2)
-
-    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-    checkpoint_path = './checkpoints/checkpoint_5k_two_steps.pt'
-    loss_path = './loss/loss_5k_two_step.csv'
-
-    model = ActionCondLSTM(input_size=3, action_size=1, hidden_size=16, num_layers=1,
-                           checkpoint_path=checkpoint_path, loss_path=loss_path).to(device)
-
-    model.train_model(num_epochs=1000, train_data_loader=pend_train_loader,
-                      test_data_loader=pend_test_loader, device=device, save_model=True)

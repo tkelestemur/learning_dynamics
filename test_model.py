@@ -12,7 +12,8 @@ def test_pendulum():
     # Load model and weights
     device = torch.device('cpu')
     model = ActionCondLSTM(input_size=3, action_size=1, hidden_size=16, num_layers=1).to(device)
-    model.load_state_dict(torch.load('./checkpoints/checkpoint_5k.pt'), strict=True)
+    state_checkpoint_path = './checkpoints/checkpoint_5k.pt'
+    model.load_state_dict(torch.load(state_checkpoint_path, map_location=device), strict=True)
     model.eval()
 
     # Plotting
@@ -20,7 +21,7 @@ def test_pendulum():
     fig.suptitle('Pendulum')
     ax.set_xlabel('timestep')
     ax.set_ylabel('velocity')
-    ax.legend(['simulation'])
+    # ax.legend(['simulation'])
 
     # Environment
     env = gym.make('Pendulum-v0')
@@ -32,7 +33,7 @@ def test_pendulum():
     for i in range(horizon_length):
         a = env.action_space.sample()
         # env.render()
-        state_action_t = np.array([[state_pred[0], state_pred[1], state_pred[2], a, 0.0, 0.0, 0.0]], dtype=np.float32)
+        state_action_t = np.array([[state_pred[0], state_pred[1], state_pred[2], a]], dtype=np.float32)
         if i == 0:
             states_actions = state_action_t
             states_true = np.array([state_true])
@@ -42,10 +43,10 @@ def test_pendulum():
         # nn model prediction
 
         states_actions_torch = torch.from_numpy(states_actions)
-        states_actions_torch = states_actions_torch.view(1, -1, 7)
+        states_actions_torch = states_actions_torch.view(1, -1, 4)
         states_actions_torch = states_actions_torch.to(device)
         with torch.no_grad():
-            next_state_pred = model.forward(states_actions_torch)
+            next_state_pred = model.forward(states_actions_torch[:, :, 0:3], states_actions_torch[:, :, 3:4])
 
         next_state_pred = next_state_pred.view(next_state_pred.size(1), next_state_pred.size(2))
         next_state_pred_numpy = next_state_pred[-1].cpu().numpy()
