@@ -8,12 +8,13 @@ import numpy as np
 
 class ActionCondLSTM(nn.Module):
 
-    def __init__(self, input_size, action_size, hidden_size, num_layers, checkpoint_path=None, loss_path=None):
+    def __init__(self, input_size, action_size, hidden_size, num_layers, future_steps=1, checkpoint_path=None, loss_path=None):
         super(ActionCondLSTM, self).__init__()
 
         self.action_size = action_size
         self.input_size = input_size
         self.hidden_size = hidden_size
+        self.future_steps = future_steps
         self.checkpoint_path = checkpoint_path
         self.loss_path = loss_path
 
@@ -49,28 +50,29 @@ class ActionCondLSTM(nn.Module):
                 actions = actions.to(device)
                 next_states = next_states.to(device)
 
-                next_states_pred = self.forward(states, actions)
+                if self.future_steps == 1:
+                    next_states_pred = self.forward(states, actions)
+                    loss = loss_func(input=next_states_pred, target=next_states)
 
-                next_next_states_pred = self.forward(next_states_pred[:, :-1, :], actions[:, 1:, :])
+                elif self.future_steps == 2:
+                    next_states_pred = self.forward(states, actions)
+                    next_next_states_pred = self.forward(next_states_pred[:, :-1, :], actions[:, 1:, :])
+                    loss = 0.5 * (loss_func(input=next_states_pred, target=next_states) +
+                                  loss_func(input=next_next_states_pred, target=next_states[:, 1:, :]))
 
-                # backward pass
-                loss = 0.5 * (loss_func(input=next_states_pred, target=next_states) +
-                              loss_func(input=next_next_states_pred, target=next_states[:, 1:, :]))
-
-                # loss = loss_func(input=next_states_pred, target=next_states)
 
                 valid_loss += loss.item()
             valid_loss /= len(valid_data_loader)
         return valid_loss
 
     def train_model(self, num_epochs=1, train_data_loader=None, valid_data_loader=None,
-                    device=None, save_model=False, future_steps=1):
+                    device=None, save_model=False):
         self.train()
 
         loss_func = nn.MSELoss()
         optimizer = optim.Adam(params=self.parameters(), lr=1e-3)
 
-        print('Starting training...\nNumber of future step predictions: {}'.format(future_steps))
+        print('Starting training...\nNumber of future step predictions: {}'.format(self.future_steps))
         epoch_loss = []
         for epoch in range(num_epochs):
             train_loss = 0
@@ -82,10 +84,10 @@ class ActionCondLSTM(nn.Module):
 
                 optimizer.zero_grad()
                 # forward pass
-                if future_steps == 1:
+                if self.future_steps == 1:
                     next_states_pred = self.forward(states, actions)
                     loss = loss_func(input=next_states_pred, target=next_states)
-                elif future_steps == 2:
+                elif self.future_steps == 2:
                     next_states_pred = self.forward(states, actions)
                     next_next_states_pred = self.forward(next_states_pred[:, :-1, :], actions[:, 1:, :])
                     loss = 0.5 * (loss_func(input=next_states_pred, target=next_states) +

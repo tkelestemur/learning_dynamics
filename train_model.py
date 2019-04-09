@@ -19,7 +19,7 @@ if __name__ == '__main__':
     checkpoint_path = './checkpoints/checkpoint_5k_one_steps.pt'
     loss_path = './loss/loss_5k_one_step.csv'
 
-    model = ActionCondLSTM(input_size=3, action_size=1, hidden_size=16, num_layers=1,
+    model = ActionCondLSTM(input_size=3, action_size=1, hidden_size=16, num_layers=1, future_steps=2,
                            checkpoint_path=checkpoint_path, loss_path=loss_path).to(device)
 
     model.train_model(num_epochs=1000, train_data_loader=pend_train_loader,
