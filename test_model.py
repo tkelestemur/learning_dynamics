@@ -12,7 +12,7 @@ def test_pendulum():
     # Load model and weights
     device = torch.device('cpu')
     model = ActionCondLSTM(input_size=3, action_size=1, hidden_size=16, num_layers=1).to(device)
-    state_checkpoint_path = './checkpoints/checkpoint_5k.pt'
+    state_checkpoint_path = './checkpoints/checkpoint_5k_one_steps.pt'
     model.load_state_dict(torch.load(state_checkpoint_path, map_location=device), strict=True)
     model.eval()
 

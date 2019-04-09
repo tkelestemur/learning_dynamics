@@ -39,13 +39,12 @@ class ActionCondLSTM(nn.Module):
 
         return s_next
 
-    def evaluate_model(self, test_data_loader=None, device=None):
+    def evaluate_model(self, valid_data_loader=None, device=None):
         # self.eval()
         loss_func = nn.MSELoss()
         valid_loss = 0
         with torch.no_grad():
-            for states, actions, next_states in test_data_loader:
-
+            for states, actions, next_states in valid_data_loader:
                 states = states.to(device)
                 actions = actions.to(device)
                 next_states = next_states.to(device)
@@ -61,10 +60,11 @@ class ActionCondLSTM(nn.Module):
                 # loss = loss_func(input=next_states_pred, target=next_states)
 
                 valid_loss += loss.item()
-            valid_loss /= len(test_data_loader)
+            valid_loss /= len(valid_data_loader)
         return valid_loss
 
-    def train_model(self, num_epochs=1, train_data_loader=None, test_data_loader=None, device=None, save_model=False, future_steps=1):
+    def train_model(self, num_epochs=1, train_data_loader=None, valid_data_loader=None,
+                    device=None, save_model=False, future_steps=1):
         self.train()
 
         loss_func = nn.MSELoss()
@@ -97,11 +97,11 @@ class ActionCondLSTM(nn.Module):
                 # gradient update
                 optimizer.step()
 
-            valid_loss = self.evaluate_model(test_data_loader=test_data_loader, device=device)
+            valid_loss = self.evaluate_model(valid_data_loader=valid_data_loader, device=device)
             # valid_loss = 0
             train_loss = train_loss / len(train_data_loader)
 
-            print('Epoch {} Train Loss: {:.6f} Validation Loss: {:.6f}'.format(epoch+1, train_loss, valid_loss))
+            print('Epoch {} Train Loss: {:.6f} Validation Loss: {:.6f}'.format(epoch + 1, train_loss, valid_loss))
             epoch_loss += [np.hstack((train_loss, valid_loss))]
 
             if save_model:
@@ -114,4 +114,3 @@ class ActionCondLSTM(nn.Module):
         if save_model:
             epoch_loss = np.array(epoch_loss)
             np.savetxt(self.loss_path, epoch_loss, delimiter=',')
-
