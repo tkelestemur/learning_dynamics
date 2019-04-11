@@ -13,7 +13,7 @@ def pendulum():
         obs = env.reset()
         traj = []
         for j in range(num_steps):
-            # env.render()
+            env.render()
 
             a = env.action_space.sample()
             # a_idx = np.random.randint(0, 5)
@@ -37,7 +37,7 @@ def pendulum():
     trajectories = np.array(trajectories)
     print(trajectories.shape)
 
-    np.save('./pend_data/pendulum_100H_1000N.npy', trajectories)
+    # np.save('./pend_data/pendulum_100H_1000N.npy', trajectories)
     env.close()
 
 
@@ -77,5 +77,5 @@ def inverted_pendulum():
 
 
 if __name__ == '__main__':
-    # pendulum()
-    inverted_pendulum()
+    pendulum()
+    # inverted_pendulum()

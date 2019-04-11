@@ -11,6 +11,9 @@ class PendulumDataset(Dataset):
         elif dataset_type == 'test':
             data = np.load('./pend_data/pendulum_100H_1000N.npy')
             self.data = data.astype(np.float32)
+        else:
+            raise NotImplementedError
+
     def __getitem__(self, index):
         traj_i = self.data[index]
 

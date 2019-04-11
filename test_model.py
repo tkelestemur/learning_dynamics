@@ -17,7 +17,7 @@ def test_pendulum():
     model.eval()
 
     model_two_steps = ActionCondLSTM(input_size=3, action_size=1, hidden_size=16, num_layers=1).to(device)
-    state_checkpoint_path = './checkpoints/checkpoint_5k_two_steps.pt'
+    state_checkpoint_path = './checkpoints/checkpoint_5k_one_step_hidden_loss.pt'
     model_two_steps.load_state_dict(torch.load(state_checkpoint_path, map_location=device), strict=True)
     model_two_steps.eval()
 
@@ -26,7 +26,7 @@ def test_pendulum():
     fig.set_size_inches(12, 8)
     fig.suptitle('Pendulum')
     ax.set_xlabel('Timestep')
-    ax.set_ylabel('Angle')
+    ax.set_ylabel('Velocity')
     # ax.legend(('training', 'validation'))
     # plt.legend()
 
@@ -61,8 +61,8 @@ def test_pendulum():
         states_actions_torch_2 = states_actions_torch_2.view(1, -1, 4)
         states_actions_torch_2 = states_actions_torch_2.to(device)
         with torch.no_grad():
-            next_state_pred = model.forward(states_actions_torch[:, :, 0:3], states_actions_torch[:, :, 3:4])
-            next_state_pred_2 = model_two_steps.forward(states_actions_torch_2[:, :, 0:3], states_actions_torch_2[:, :, 3:4])
+            next_state_pred, _, _ = model.forward(states_actions_torch[:, :, 0:3], states_actions_torch[:, :, 3:4])
+            next_state_pred_2, _, _ = model_two_steps.forward(states_actions_torch_2[:, :, 0:3], states_actions_torch_2[:, :, 3:4])
 
         next_state_pred = next_state_pred.view(next_state_pred.size(1), next_state_pred.size(2))
         next_state_pred_numpy = next_state_pred[-1].cpu().numpy()
@@ -75,9 +75,9 @@ def test_pendulum():
         # simulator
         next_state_true, r, d, _ = env.step(a)
 
-        ax.plot(states_true[:, 0], c='r', label='true state', linewidth=2)
-        ax.plot(states_actions[:, 0], '--', c='b', label='1-step loss', linewidth=2.5)
-        ax.plot(states_actions_2[:, 0], '--', c='g', label='2-step loss', linewidth=2.5)
+        ax.plot(states_true[:, 2], c='r', label='true state', linewidth=2)
+        ax.plot(states_actions[:, 2], '--', c='b', label='1-step w/o hidden loss', linewidth=2.5)
+        ax.plot(states_actions_2[:, 2], '--', c='g', label='1-step w/ hidden loss', linewidth=2.5)
         plt.pause(0.05)
 
         if i == 0:

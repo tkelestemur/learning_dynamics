@@ -3,31 +3,14 @@ from dm_control import viewer
 import numpy as np
 
 
-class ActionRepeat(object):
-  """Repeat the agent action multiple steps."""
-
-  def __init__(self, env, amount):
-    self._env = env
-    self._amount = amount
-
-  def __getattr__(self, name):
-    return getattr(self._env, name)
-
-  def step(self, action):
-    done = False
-    total_reward = 0
-    current_step = 0
-    while current_step < self._amount and not done:
-      observ, reward, done, info = self._env.step(action)
-      total_reward += reward
-      current_step += 1
-    return observ, total_reward, done, info
-
 
 # Load one task:
-env = suite.load(domain_name="pendulum", task_name="swingup", environment_kwargs={'n_sub_steps': 10})
+env = suite.load(domain_name="pendulum", task_name="swingup", task_kwargs={'time_limit': 5.0})
+env.physics.model.dof_damping[0] = 0.0
+# env = ActionRepeat(env, 8)
 env.reset()
-# e
+
+
 
 
 # env = ActionRepeat(env, 8)
@@ -42,8 +25,9 @@ def random_policy(time_step):
   action = np.random.uniform(action_spec.minimum,
                              action_spec.maximum,
                              size=action_spec.shape)
+  print(env.physics.data.ctrl[:])
   # print(action)
-  # action = 20
+  # action = 1
   return action
 
 

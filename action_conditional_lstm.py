@@ -35,10 +35,11 @@ class ActionCondLSTM(nn.Module):
         encoded, hidden = self.lstm(s)
 
         # action transformation
-        s_next = self.f_dec(self.f_enc(encoded) + self.f_actions(a))
+        s_next_h = self.f_enc(encoded) + self.f_actions(a)
+        s_next = self.f_dec(s_next_h)
         # state_and_action = torch.cat((self.f_enc(encoded), self.f_actions(action)), dim=2)
 
-        return s_next
+        return s_next, s_next_h, encoded
 
     def evaluate_model(self, valid_data_loader=None, device=None):
         # self.eval()
@@ -51,8 +52,11 @@ class ActionCondLSTM(nn.Module):
                 next_states = next_states.to(device)
 
                 if self.future_steps == 1:
-                    next_states_pred = self.forward(states, actions)
-                    loss = loss_func(input=next_states_pred, target=next_states)
+                    # next_states_pred = self.forward(states, actions)
+                    # loss = loss_func(input=next_states_pred, target=next_states)
+                    s_next, s_next_h, encoded = self.forward(states, actions)
+                    loss = loss_func(input=s_next, target=next_states) + \
+                           loss_func(input=s_next_h[:, :-1, :], target=encoded[:, 1:, :])
 
                 elif self.future_steps == 2:
                     next_states_pred = self.forward(states, actions)
@@ -85,8 +89,9 @@ class ActionCondLSTM(nn.Module):
                 optimizer.zero_grad()
                 # forward pass
                 if self.future_steps == 1:
-                    next_states_pred = self.forward(states, actions)
-                    loss = loss_func(input=next_states_pred, target=next_states)
+                    s_next, s_next_h, encoded = self.forward(states, actions)
+                    loss = loss_func(input=s_next, target=next_states) + \
+                           loss_func(input=s_next_h[:, :-1, :], target=encoded[:, 1:, :])
                 elif self.future_steps == 2:
                     next_states_pred = self.forward(states, actions)
                     next_next_states_pred = self.forward(next_states_pred[:, :-1, :], actions[:, 1:, :])
