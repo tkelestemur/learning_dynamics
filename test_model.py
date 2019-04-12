@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
-from action_conditional_lstm import ActionCondLSTM
+from networks.action_conditional_lstm import ActionCondLSTM
 
 
 def test_pendulum():

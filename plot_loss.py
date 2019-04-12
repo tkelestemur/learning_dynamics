@@ -4,8 +4,8 @@ plt.style.use('ggplot')
 
 
 def plot_loss():
-    loss_one_step = np.genfromtxt('./loss/loss_5k_one_step.csv', delimiter=',')
-    loss_two_step = np.genfromtxt('./loss/loss_5k_two_step.csv', delimiter=',')
+    loss_one_step = np.genfromtxt('./loss/lstm_auto_encoder/loss_5k.csv', delimiter=',')
+    loss_two_step = np.genfromtxt('./loss/lstm_auto_encoder/loss_5k.csv', delimiter=',')
     fig, axes = plt.subplots(2, 1)
     # fig.suptitle('[2 Step Prediction - Training: 5k - Validation: 1k]')
     fig.set_size_inches(12, 8)
