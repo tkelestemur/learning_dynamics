@@ -6,11 +6,11 @@ from torch.utils.data import Dataset
 class PendulumDataset(Dataset):
     def __init__(self, dataset_type=None):
         if dataset_type == 'train':
-            data = np.load('./pend_data/pendulum_100H_5000N.npy')
-            self.data = data.astype(np.float32)
+            self.data = np.load('./pend_data/pendulum_200_step_5k_run.npz')
+            # self.data = data.astype(np.float32)
         elif dataset_type == 'test':
-            data = np.load('./pend_data/pendulum_100H_1000N.npy')
-            self.data = data.astype(np.float32)
+            self.data = np.load('./pend_data/pendulum_200_step_1k_run.npz')
+            # self.data = data.astype(np.float32)
         else:
             raise NotImplementedError
 
