@@ -50,10 +50,11 @@ class LSTMAutoEncoder(nn.Module):
 
                 optimizer.zero_grad()
 
-                encdoed, decoded, transformed = self.forward(states, actions)
-
+                encoded, decoded, transformed = self.forward(states, actions)
+                encdoed_2, decoded_2, transformed_2 = self.forward(decoded[:, :-1, :], actions[:, 1:, :])
                 loss = loss_func(input=decoded, target=states) + \
-                       loss_func(input=transformed[:, :-1, :], target=encdoed[:, 1:, :])
+                       loss_func(input=transformed[:, :-1, :], target=encoded[:, 1:, :]) + \
+                       loss_func(input=transformed_2[:, :-1, :], target=encdoed_2[:, 1:, :])
 
                 loss.backward()
                 train_loss += loss.item()
