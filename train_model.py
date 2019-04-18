@@ -37,14 +37,16 @@ def train_lstm_auto_encoder():
                                    drop_last=False, shuffle=False, num_workers=2)
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-    checkpoint_path = './checkpoints/lstm_auto_encoder/checkpoint_5k_two_step.pth'
-    loss_path = './loss/lstm_auto_encoder/loss_5k_two_step.csv'
+    checkpoint_path = './checkpoints/lstm_auto_encoder/checkpoint_5k_64h_bias_one_step.pth'
+    loss_path = './loss/lstm_auto_encoder/loss_5k_64h_bias_one_step.csv'
 
-    model = LSTMAutoEncoder(input_size=3, action_size=1, hidden_size=16, num_layers=1, future_steps=1,
+    model = LSTMAutoEncoder(input_size=3, action_size=1, hidden_size=64, num_layers=1, bias=True, future_steps=1,
                             checkpoint_path=checkpoint_path, loss_path=loss_path).to(device)
 
-    model.train_model(num_epochs=200, train_data_loader=pend_train_loader,
-                      valid_data_loader=pend_valid_loader, device=device, save_model=False)
+    # model.load_state_dict(torch.load('./checkpoints/lstm_auto_encoder/checkpoint_5k.pth', map_location=device), strict=True)
+
+    model.train_model(num_epochs=400, train_data_loader=pend_train_loader,
+                      valid_data_loader=pend_valid_loader, device=device, save_model=True)
 
 
 if __name__ == '__main__':

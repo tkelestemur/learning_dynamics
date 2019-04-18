@@ -3,7 +3,7 @@ import numpy as np
 from dm_control import suite
 from networks.lstm_autoencoder import LSTMAutoEncoder
 import scipy.linalg as linalg
-
+import control
 
 def lqr_pendulum():
 
@@ -12,7 +12,7 @@ def lqr_pendulum():
     env.physics.model.dof_damping[0] = 0.0
     time_step = env.reset()
 
-    checkpoint_path = './checkpoints/lstm_auto_encoder/checkpoint_5k.pth'
+    checkpoint_path = './checkpoints/lstm_auto_encoder/checkpoint_5k_two_step.pth'
     state_dict = torch.load(checkpoint_path, map_location=torch.device('cpu'))
     model = LSTMAutoEncoder(input_size=3, action_size=1, hidden_size=16, num_layers=1)
     model.load_state_dict(state_dict, strict=True)
@@ -54,13 +54,25 @@ def lqr_pendulum():
         # continous
         # P = linalg.solve_continuous_are(A, B, Q, R)
         # K = - linalg.inv(R).dot(B.T.dot(P))
-        return K
+        return - K
+
+    N = 50
+    P = np.zeros((50, 16, 16))
+    I = np.eye(16)
+    P[49] = 1000 * I
+
+    # for i in range(N):
+
+
+
+    K = solve_lqr(A, B, Q, R)
+    # (K, X, E) = control.lqr(A, B, Q, R)
 
     success = False
-    for i in range(100):
-        K = - solve_lqr(A, B, Q, R)
+    for i in range(200):
+
         # u = -K * x_cur_hidden
-        u = np.dot(K, (x_cur_hidden- x_des_hidden))
+        u = np.dot(K, (x_cur_hidden - x_des_hidden))
         # u = np.dot(K, x_cur_hidden)
 
         x_cur_hidden = np.dot(A, x_cur_hidden) + np.dot(B, u)
