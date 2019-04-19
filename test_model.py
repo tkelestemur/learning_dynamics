@@ -1,5 +1,7 @@
 from dm_control import suite
 import torch
+from torch.utils.data import DataLoader
+from data import PendulumDataset
 import numpy as np
 import scipy.linalg as la
 import matplotlib.pyplot as plt
@@ -7,16 +9,55 @@ from networks.lstm_autoencoder import LSTMAutoEncoder
 plt.style.use('ggplot')
 
 
-def run_model():
-
+def test_model():
     # Load the model
-    checkpoint_path = './checkpoints/lstm_auto_encoder/checkpoint_5k_64h_one_step.pth'
-    model = LSTMAutoEncoder(input_size=3, action_size=1, hidden_size=64, num_layers=1, bias=False)
+    checkpoint_path = './checkpoints/lstm_auto_encoder/checkpoint_16h_2step.pth'
+    model = LSTMAutoEncoder(input_size=3, action_size=1, hidden_size=16, num_layers=1, bias=True, k_step=1)
     model.load_state_dict(torch.load(checkpoint_path, map_location=torch.device('cpu')), strict=True)
     model.eval()
 
-    checkpoint_path = './checkpoints/lstm_auto_encoder/checkpoint_5k_64h_bias_one_step.pth'
-    model_2 = LSTMAutoEncoder(input_size=3, action_size=1, hidden_size=64, num_layers=1, bias=True)
+    fig, ax = plt.subplots(1, 1)
+    fig.set_size_inches(12, 8)
+    fig.suptitle('Pendulum')
+    ax.set_xlabel('Timestep')
+    ax.set_ylabel('State')
+
+    # Loadt test set
+    pend_test_data = PendulumDataset('test')
+
+    with torch.no_grad():
+        # for states, actions in pend_test_data:
+        states,  actions = pend_test_data[0]
+        trajectory_sim = states.numpy()
+        trajectory_net = np.zeros((200, 3))
+        trajectory_net[0] = states[0].numpy().copy()
+        first_state = states[0].view(1, 1, 3)
+
+        state_hidden, _ = model.lstm(first_state)
+
+        for i in range(actions.size(0)-1):
+            state_hidden = model.transform(state_hidden, actions[i])
+            state_dec = model.f_decoder(state_hidden)
+            trajectory_net[i+1] = state_dec.view(1, 3).numpy()
+        #     print('Decoded state: {} True state : {}'.format(state_dec, states[i+1]))
+
+        ax.plot(trajectory_sim[:, 0], c='r', label='true state', linewidth=2)
+        ax.plot(trajectory_net[:, 0], '--', c='b', label='prediction w/o bias', linewidth=2)
+        plt.legend()
+        plt.show()
+        # for waypoint in
+
+
+def run_model():
+
+    # Load the model
+    checkpoint_path = './checkpoints/lstm_auto_encoder/checkpoint_16h_1step.pth'
+    model = LSTMAutoEncoder(input_size=3, action_size=1, hidden_size=16, num_layers=1, bias=True)
+    model.load_state_dict(torch.load(checkpoint_path, map_location=torch.device('cpu')), strict=True)
+    model.eval()
+
+    checkpoint_path = './checkpoints/lstm_auto_encoder/checkpoint_16h_2step.pth'
+    model_2 = LSTMAutoEncoder(input_size=3, action_size=1, hidden_size=16, num_layers=1, bias=True)
     model_2.load_state_dict(torch.load(checkpoint_path, map_location=torch.device('cpu')), strict=True)
     model_2.eval()
 
@@ -95,4 +136,5 @@ def run_model():
 
 
 if __name__ == '__main__':
-    run_model()
+    test_model()
+    # run_model()

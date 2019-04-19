@@ -1,0 +1,10 @@
+parameters:
+  input_size: 3
+  action_size: 1
+  k_step: 2
+  hidden_size: 16
+  num_layers: 1
+  bias: True
+  batch_size: 32
+  num_epochs: 100
+  save: True
