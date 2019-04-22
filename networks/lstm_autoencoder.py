@@ -47,7 +47,7 @@ class LSTMAutoEncoder(nn.Module):
         pred_criteria = nn.MSELoss()
         optimizer = optim.Adam(params=self.parameters(), lr=1e-3)
 
-        print('Starting training...\nNumber of future step predictions: {}'.format(self.k_step))
+        print('Starting training...')
         epoch_loss = np.zeros((num_epochs, 2))
         for epoch in range(num_epochs):
             self.train()

@@ -17,12 +17,13 @@ class PendulumDataset(Dataset):
         else:
             raise NotImplementedError
 
+        self.state_size = self.data.shape[2]-1
+
     def __getitem__(self, index):
         traj_i = self.data[index]
 
-        states = torch.from_numpy(traj_i[:, 0:3])
-        actions = torch.from_numpy(traj_i[:, 3:4])
-        # next_states = torch.from_numpy(traj_i[:, 4:7])
+        states = torch.from_numpy(traj_i[:, 0:self.state_size])
+        actions = torch.from_numpy(traj_i[:, self.state_size:self.state_size+1])
 
         return states, actions
 

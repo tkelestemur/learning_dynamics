@@ -39,8 +39,8 @@ def train_lstm_auto_encoder(config):
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
-    checkpoint_path = './checkpoints/lstm_auto_encoder/checkpoint_' + str(config['hidden_size']) + 'h_' + str(config['k_step']) + 'step.pth'
-    loss_path = './loss/lstm_auto_encoder/loss_' + str(config['hidden_size']) + 'h_' + str(config['k_step']) + 'step.loss'
+    checkpoint_path = './checkpoints/lstm_auto_encoder/new_checkpoint_' + str(config['hidden_size']) + 'h_' + str(config['k_step']) + 'step.pth'
+    loss_path = './loss/lstm_auto_encoder/new_loss_' + str(config['hidden_size']) + 'h_' + str(config['k_step']) + 'step.csv'
 
     model = LSTMAutoEncoder(input_size=config['input_size'], action_size=config['action_size'],
                             hidden_size=config['hidden_size'], num_layers=config['num_layers'], bias=config['bias'],

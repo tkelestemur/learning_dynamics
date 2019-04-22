@@ -11,8 +11,8 @@ plt.style.use('ggplot')
 
 def test_model():
     # Load the model
-    checkpoint_path = './checkpoints/lstm_auto_encoder/checkpoint_16h_2step.pth'
-    model = LSTMAutoEncoder(input_size=3, action_size=1, hidden_size=16, num_layers=1, bias=True, k_step=1)
+    checkpoint_path = './checkpoints/lstm_auto_encoder/checkpoint_64h_1step.pth'
+    model = LSTMAutoEncoder(input_size=3, action_size=1, hidden_size=64, num_layers=1, bias=True, k_step=1)
     model.load_state_dict(torch.load(checkpoint_path, map_location=torch.device('cpu')), strict=True)
     model.eval()
 
@@ -20,32 +20,40 @@ def test_model():
     fig.set_size_inches(12, 8)
     fig.suptitle('Pendulum')
     ax.set_xlabel('Timestep')
-    ax.set_ylabel('State')
+    ax.set_ylabel('Pole Angle [rad]')
 
     # Loadt test set
     pend_test_data = PendulumDataset('test')
 
-    with torch.no_grad():
-        # for states, actions in pend_test_data:
-        states,  actions = pend_test_data[0]
-        trajectory_sim = states.numpy()
-        trajectory_net = np.zeros((200, 3))
-        trajectory_net[0] = states[0].numpy().copy()
-        first_state = states[0].view(1, 1, 3)
+    states,  actions = pend_test_data[0]
+    states_sim = states.numpy()
+    states_net = torch.zeros(1, 200, 3)
+    states_net[0, 0] = states[0]
 
-        state_hidden, _ = model.lstm(first_state)
+    for i in range(states.size(0)-1):
+        with torch.no_grad():
+            encoded, decoded, transformed = model.forward(states_net[:, :i+1, :], actions[:i+1])
+            transformed_decoded = model.f_decoder(transformed)
+            transformed_decoded = transformed_decoded[:, -1, :]
 
-        for i in range(actions.size(0)-1):
-            state_hidden = model.transform(state_hidden, actions[i])
-            state_dec = model.f_decoder(state_hidden)
-            trajectory_net[i+1] = state_dec.view(1, 3).numpy()
-        #     print('Decoded state: {} True state : {}'.format(state_dec, states[i+1]))
+            states_net[0, i+1] = transformed_decoded
 
-        ax.plot(trajectory_sim[:, 0], c='r', label='true state', linewidth=2)
-        ax.plot(trajectory_net[:, 0], '--', c='b', label='prediction w/o bias', linewidth=2)
-        plt.legend()
-        plt.show()
-        # for waypoint in
+
+    # with torch.no_grad():
+    #     state_encoded, _ = model.lstm(states[0].view(1, 1, 3))
+    # for i in range(states.size(0)-1):
+    #     with torch.no_grad():
+    #         state_encoded = model.transform(state_encoded, actions[i])
+    #         state_decoded = model.f_decoder(state_encoded)
+    #         print(state_decoded.shape)
+    #         states_net[0, i+1] = state_decoded[:, -1, :]
+    # states_net = states_net.view(200, 3).numpy()
+
+    states_net = states_net.view(200, 3).numpy()
+    ax.plot(states_sim[:, 1], c='r', label='true state', linewidth=2)
+    ax.plot(states_net[:, 1], '--', c='b', label='prediction', linewidth=2)
+    plt.legend()
+    plt.show()
 
 
 def run_model():
@@ -69,7 +77,7 @@ def run_model():
     ax.set_ylabel('State')
 
     # Environment
-    env = suite.load(domain_name="pendulum", task_name="swingup", task_kwargs={'time_limit': 5.0})
+    env = suite.load(domain_name="pendulum", task_name="swingup", task_kwargs={'time_limit': 4.0})
     action_spec = env.action_spec()
     env.physics.model.dof_damping[0] = 0.0
     time_step = env.reset()
@@ -77,7 +85,7 @@ def run_model():
     state_sim = np.hstack((time_step.observation['orientation'], time_step.observation['velocity']))
     state_net = state_sim.copy()
     state_net_2 = state_sim.copy()
-    N = 250
+    N = 200
     trajectory_sim = np.zeros((N, 4))
     trajectory_net = np.zeros((N, 4))
     trajectory_net_2 = np.zeros((N, 4))
@@ -122,7 +130,7 @@ def run_model():
                                time_step.observation['velocity']))
         i += 1
 
-    state_i = 2
+    state_i = 0
     one_step_mse = la.norm(trajectory_sim[:, state_i] - trajectory_net[:, state_i])
     two_step_mse = la.norm(trajectory_sim[:, state_i] - trajectory_net_2[:, state_i])
     ax.plot(trajectory_sim[:, state_i], c='r', label='true state', linewidth=2)

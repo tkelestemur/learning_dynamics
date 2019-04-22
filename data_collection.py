@@ -14,6 +14,7 @@ def view_env():
     def random_policy(time_step):
         del time_step
         a = np.random.uniform(action_spec.minimum, action_spec.maximum, size=action_spec.shape)
+        print('qpos {} qvel {}'.format(env.physics.data.qpos[0], env.physics.data.qvel[0]))
 
         return a
 
@@ -22,7 +23,7 @@ def view_env():
 
 def collect_pendulum_data():
 
-    num_runs = 1000
+    num_runs = 10000
     traj_horizon = 4.0
 
     env = suite.load(domain_name="pendulum", task_name="swingup", task_kwargs={'time_limit': traj_horizon})
@@ -37,7 +38,9 @@ def collect_pendulum_data():
             action = np.random.uniform(action_spec.minimum,
                                        action_spec.maximum,
                                        size=action_spec.shape)
-            state_action_t = np.hstack((time_step.observation['orientation'], time_step.observation['velocity'], action))
+            state_action_t = np.array([env.physics.data.qpos[0], env.physics.data.qvel[0], action])
+            print(state_action_t)
+            # state_action_t = np.hstack((time_step.observation['orientation'], time_step.observation['velocity'], action))
             trajectory += [state_action_t]
 
             time_step = env.step(action)
@@ -47,7 +50,7 @@ def collect_pendulum_data():
 
     trajectories = np.array(trajectories)
 
-    np.save('./pend_data/pendulum_200_step_1k_run_test', trajectories)
+    np.save('./pend_data/pendulum_200_step_10k_run_valid_new', trajectories)
 
 
 if __name__ == '__main__':
