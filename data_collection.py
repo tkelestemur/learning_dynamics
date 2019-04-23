@@ -12,10 +12,14 @@ def view_env():
     action_spec = env.action_spec()
 
     def random_policy(time_step):
-        del time_step
+        # del time_step
         a = np.random.uniform(action_spec.minimum, action_spec.maximum, size=action_spec.shape)
-        print('qpos {} qvel {}'.format(env.physics.data.qpos[0], env.physics.data.qvel[0]))
-
+        if env.physics.data.qpos[0] < 0.0:
+            print('qpos {} qvel {}'.format(2*np.pi + env.physics.data.qpos[0], env.physics.data.qvel[0]))
+        else:
+            print('qpos {} qvel {}'.format(env.physics.data.qpos[0], env.physics.data.qvel[0]))
+        # print(time_step.observation['orientation'])
+        print(a[0])
         return a
 
     viewer.launch(env, policy=random_policy)
@@ -38,7 +42,11 @@ def collect_pendulum_data():
             action = np.random.uniform(action_spec.minimum,
                                        action_spec.maximum,
                                        size=action_spec.shape)
-            state_action_t = np.array([env.physics.data.qpos[0], env.physics.data.qvel[0], action])
+            if env.physics.data.qpos[0] < 0.0:
+
+                state_action_t = np.array([2*np.pi + env.physics.data.qpos[0], env.physics.data.qvel[0], action[0]])
+            else:
+                state_action_t = np.array([env.physics.data.qpos[0], env.physics.data.qvel[0], action])
             print(state_action_t)
             # state_action_t = np.hstack((time_step.observation['orientation'], time_step.observation['velocity'], action))
             trajectory += [state_action_t]
@@ -50,7 +58,7 @@ def collect_pendulum_data():
 
     trajectories = np.array(trajectories)
 
-    np.save('./pend_data/pendulum_200_step_10k_run_valid_new', trajectories)
+    np.save('./pend_data/pendulum_200_step_10k_run_valid_new2', trajectories)
 
 
 if __name__ == '__main__':

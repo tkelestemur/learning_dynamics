@@ -8,3 +8,4 @@ parameters:
   batch_size: 32
   num_epochs: 300
   save: True
+  prefix: 'new2'
