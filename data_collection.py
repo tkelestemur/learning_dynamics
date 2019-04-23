@@ -42,13 +42,13 @@ def collect_pendulum_data():
             action = np.random.uniform(action_spec.minimum,
                                        action_spec.maximum,
                                        size=action_spec.shape)
-            if env.physics.data.qpos[0] < 0.0:
-
-                state_action_t = np.array([2*np.pi + env.physics.data.qpos[0], env.physics.data.qvel[0], action[0]])
-            else:
-                state_action_t = np.array([env.physics.data.qpos[0], env.physics.data.qvel[0], action])
+            # if env.physics.data.qpos[0] < 0.0:
+            #
+            #     state_action_t = np.array([2*np.pi + env.physics.data.qpos[0], env.physics.data.qvel[0], action[0]])
+            # else:
+            #     state_action_t = np.array([env.physics.data.qpos[0], env.physics.data.qvel[0], action])
             # print(state_action_t)
-            # state_action_t = np.hstack((time_step.observation['orientation'], time_step.observation['velocity'], action))
+            state_action_t = np.hstack((time_step.observation['orientation'], time_step.observation['velocity'], action))
             trajectory += [state_action_t]
 
             time_step = env.step(action)
@@ -58,7 +58,7 @@ def collect_pendulum_data():
 
     trajectories = np.array(trajectories)
 
-    np.save('./pend_data/pendulum_200_step_1k_run_valid_new2', trajectories)
+    np.save('./pend_data/pendulum_200_step_1k_run_valid', trajectories)
 
 
 if __name__ == '__main__':

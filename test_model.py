@@ -1,6 +1,6 @@
 from dm_control import suite
 import torch
-from torch.utils.data import DataLoader
+from tqdm import tqdm
 from data import PendulumDataset
 import numpy as np
 import scipy.linalg as la
@@ -11,8 +11,8 @@ plt.style.use('ggplot')
 
 def test_model():
     # Load the model
-    checkpoint_path = './checkpoints/lstm_auto_encoder/checkpoint_32h_2step_new2.pth'
-    model = LSTMAutoEncoder(input_size=2, action_size=1, hidden_size=32, num_layers=1, bias=True, k_step=1)
+    checkpoint_path = './checkpoints/lstm_auto_encoder/checkpoint_16h_2step.pth'
+    model = LSTMAutoEncoder(input_size=3, action_size=1, hidden_size=16, num_layers=1, bias=True, k_step=1)
     model.load_state_dict(torch.load(checkpoint_path, map_location=torch.device('cpu')), strict=True)
     model.eval()
 
@@ -23,21 +23,29 @@ def test_model():
     ax.set_ylabel('Pole Angle [rad]')
 
     # Loadt test set
-    pend_test_data = PendulumDataset('train')
+    pend_test_data = PendulumDataset('test')
 
-    states,  actions = pend_test_data[0]
-    states_sim = states.numpy()
-    states_net = torch.zeros(1, 200, 2)
-    states_net[0, 0] = states[0]
+    prediction_error = np.zeros((pend_test_data.data.shape[0], pend_test_data.data.shape[1]))
 
-    for i in range(states.size(0)-1):
-        with torch.no_grad():
-            encoded, decoded, transformed = model.forward(states_net[:, :i+1, :], actions[:i+1])
-            transformed_decoded = model.f_decoder(transformed)
-            transformed_decoded = transformed_decoded[:, -1, :]
+    for j in tqdm(range(100)):
+        states, actions = pend_test_data[j]
+        states_sim = states.numpy()
+        states_net = torch.zeros(1, 200, 3)
+        states_net[0, 0] = states[0]
 
-            states_net[0, i+1] = transformed_decoded
+        for i in range(states.size(0)-1):
+            with torch.no_grad():
+                encoded, decoded, transformed = model.forward(states_net[:, :i+1, :], actions[:i+1])
+                transformed_decoded = model.f_decoder(transformed)
+                transformed_decoded = transformed_decoded[:, -1, :]
 
+                states_net[0, i+1] = transformed_decoded
+
+        states_net = states_net.view(200, 3).numpy()
+        prediction_error[j] = (np.square(states_sim - states_net)).mean(axis=1)
+
+    prediction_error_mean = prediction_error.mean(axis=0)
+    # print(prediction_error[0])
 
     # with torch.no_grad():
     #     state_encoded, _ = model.lstm(states[0].view(1, 1, 3))
@@ -49,11 +57,13 @@ def test_model():
     #         states_net[0, i+1] = state_decoded[:, -1, :]
     # states_net = states_net.view(200, 3).numpy()
 
-    states_net = states_net.view(200, 2).numpy()
-    ax.plot(states_sim[:, 0], c='r', label='true state', linewidth=2)
-    ax.plot(states_net[:, 0], '--', c='b', label='prediction', linewidth=2)
-    plt.legend()
-    plt.show()
+    # states_net = states_net.view(200, 3).numpy()
+    # ax.plot(states_sim[:, 1], c='r', label='true state', linewidth=2)
+    # ax.plot(states_net[:, 1], '--', c='b', label='prediction', linewidth=2)
+    # plt.legend()
+    # plt.show()
+
+    ax.plot(prediction_error_mean)
 
 
 def run_model():
