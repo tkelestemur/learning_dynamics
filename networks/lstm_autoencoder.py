@@ -6,13 +6,14 @@ import numpy as np
 
 class LSTMAutoEncoder(nn.Module):
 
-    def __init__(self, input_size, action_size, hidden_size, num_layers, bias=False, k_step=1, checkpoint_path=None,
+    def __init__(self, input_size, action_size, hidden_size, num_layers, bias=False, k_step=1, lr=1e-3, checkpoint_path=None,
                  loss_path=None):
         super(LSTMAutoEncoder, self).__init__()
 
         self.action_size = action_size
         self.input_size = input_size
         self.hidden_size = hidden_size
+        self.lr = lr
         self.k_step = k_step
         self.checkpoint_path = checkpoint_path
         self.loss_path = loss_path
@@ -24,15 +25,13 @@ class LSTMAutoEncoder(nn.Module):
         self.f_action = nn.Linear(in_features=action_size, out_features=hidden_size, bias=bias)
         self.f_hidden = nn.Linear(in_features=hidden_size, out_features=hidden_size, bias=bias)
 
-    def forward(self, s, a):
+    def forward(self, s):
 
         encoded, hidden = self.lstm(s)
 
         decoded = self.f_decoder(encoded)
 
-        transformed = self.transform(encoded, a)
-
-        return encoded, decoded, transformed
+        return encoded, decoded
 
     def transform(self, s_hidden, a):
 
@@ -45,37 +44,56 @@ class LSTMAutoEncoder(nn.Module):
 
         rec_criteria = nn.MSELoss()
         pred_criteria = nn.MSELoss()
-        optimizer = optim.Adam(params=self.parameters(), lr=1e-3)
+        optimizer = optim.Adam(params=self.parameters(), lr=self.lr)
 
         print('Starting training...')
         epoch_loss = np.zeros((num_epochs, 2))
         for epoch in range(num_epochs):
             self.train()
-            train_loss, rec_loss, pred_loss = 0, 0, 0
+            train_loss, rec_train_loss, pred_train_loss = 0, 0, 0
             for states, actions in train_data_loader:
                 states, actions = states.to(device), actions.to(device)
 
                 self.zero_grad()
 
                 if self.k_step == 1:
-                    encoded, decoded, transformed = self.forward(states, actions)
-                    rec_loss = rec_criteria(input=decoded, target=states)
-                    pred_loss = pred_criteria(input=transformed[:, :-1, :], target=encoded[:, 1:, :])
+                    encoded, decoded = self.forward(states)
+                    transformed = self.transform(encoded, actions)
+                    rec_train_loss = rec_criteria(input=decoded, target=states)
+                    pred_train_loss = pred_criteria(input=transformed[:, :-1, :], target=encoded[:, 1:, :])
 
                 elif self.k_step == 2:
-                    encoded, decoded, transformed = self.forward(states, actions)
+                    encoded, decoded = self.forward(states)
+                    transformed = self.transform(encoded, actions)
                     transformed_2 = self.transform(transformed[:, :-1, :], actions[:, 1:, :])
 
-                    rec_loss = rec_criteria(input=decoded, target=states)
-                    pred_loss = 1/self.k_step * pred_criteria(input=transformed[:, :-1, :], target=encoded[:, 1:, :]) + \
+                    rec_train_loss = rec_criteria(input=decoded, target=states)
+                    pred_train_loss = 1/self.k_step * pred_criteria(input=transformed[:, :-1, :], target=encoded[:, 1:, :]) + \
                                 1/self.k_step * pred_criteria(input=transformed_2[:, :-1, :], target=encoded[:, 2:, :])
-                else:
-                    raise NotImplementedError
 
-                loss = rec_loss + pred_loss
+                elif self.k_step == 3:
+                    encoded, decoded = self.forward(states)
+                    transformed = self.transform(encoded, actions)
+                    transformed_2 = self.transform(transformed[:, :-1, :], actions[:, 1:, :])
+                    transformed_3 = self.transform(transformed_2[:, :-1, :], actions[:, 2:, :])
 
-                # rec_loss += rec_loss.item()
-                # pred_loss += pred_loss.item()
+                    rec_train_loss = rec_criteria(input=decoded, target=states)
+                    pred_train_loss = 1 / self.k_step * pred_criteria(input=transformed[:, :-1, :], target=encoded[:, 1:, :]) + \
+                                      1 / self.k_step * pred_criteria(input=transformed_2[:, :-1, :], target=encoded[:, 2:, :]) + \
+                                      1 / self.k_step * pred_criteria(input=transformed_3[:, :-1, :], target=encoded[:, 3:, :])
+
+
+                # encoded, decoded = self.forward(states)
+                # encoded_tmp = encoded
+                # rec_train_loss = rec_criteria(input=decoded, target=states)
+                # pred_weight = 1 / self.k_step
+                # for i in range(0, self.k_step):
+                #     transformed = self.transform(encoded_tmp, actions[:, i:, :])
+                #     pred_train_loss += pred_weight * pred_criteria(input=transformed[:, :-1, :], target=encoded[:, i+1:, :])
+                #     encoded_tmp = transformed[:, :-1, :]
+
+                loss = rec_train_loss + pred_train_loss
+
                 train_loss += loss.item()
 
                 loss.backward()
@@ -93,7 +111,7 @@ class LSTMAutoEncoder(nn.Module):
             # print('Epoch {} Pred Loss: {:.6f} Rec Loss: {:.6f} Total Loss: {:.6f} Validation Loss: {:.6f}'.format(
             #     epoch + 1, pred_loss, rec_loss, train_loss, valid_loss))
 
-            print('Epoch {} Training Loss: {:.6f} Validation Loss: {:.6f}'.format(epoch + 1, train_loss, valid_loss))
+            print('Epoch {} Training Loss: {:.7f} Validation Loss: {:.7f}'.format(epoch + 1, train_loss, valid_loss))
 
             if save_model:
                 epoch_loss[epoch] = np.hstack((train_loss, valid_loss))
@@ -118,22 +136,32 @@ class LSTMAutoEncoder(nn.Module):
                 states, actions = states.to(device), actions.to(device)
 
                 if self.k_step == 1:
-                    encoded, decoded, transformed = self.forward(states, actions)
-                    rec_loss = rec_criteria(input=decoded, target=states)
-                    pred_loss = pred_criteria(input=transformed[:, :-1, :], target=encoded[:, 1:, :])
+                    encoded, decoded = self.forward(states)
+                    transformed = self.transform(encoded, actions)
+                    rec_train_loss = rec_criteria(input=decoded, target=states)
+                    pred_train_loss = pred_criteria(input=transformed[:, :-1, :], target=encoded[:, 1:, :])
 
                 elif self.k_step == 2:
-                    encoded, decoded, transformed = self.forward(states, actions)
-                    # encdoed_2, decoded_2, transformed_2 = self.forward(decoded[:, :-1, :], actions[:, 1:, :])
+                    encoded, decoded = self.forward(states)
+                    transformed = self.transform(encoded, actions)
                     transformed_2 = self.transform(transformed[:, :-1, :], actions[:, 1:, :])
 
-                    rec_loss = rec_criteria(input=decoded, target=states)
-                    pred_loss = 1 / self.k_step * pred_criteria(input=transformed[:, :-1, :], target=encoded[:, 1:, :]) + \
-                                1 / self.k_step * pred_criteria(input=transformed_2[:, :-1, :], target=encoded[:, 2:, :])
-                else:
-                    raise NotImplementedError
+                    rec_train_loss = rec_criteria(input=decoded, target=states)
+                    pred_train_loss = 1/self.k_step * pred_criteria(input=transformed[:, :-1, :], target=encoded[:, 1:, :]) + \
+                                1/self.k_step * pred_criteria(input=transformed_2[:, :-1, :], target=encoded[:, 2:, :])
 
-                loss = rec_loss + pred_loss
+                elif self.k_step == 3:
+                    encoded, decoded = self.forward(states)
+                    transformed = self.transform(encoded, actions)
+                    transformed_2 = self.transform(transformed[:, :-1, :], actions[:, 1:, :])
+                    transformed_3 = self.transform(transformed_2[:, :-1, :], actions[:, 2:, :])
+
+                    rec_train_loss = rec_criteria(input=decoded, target=states)
+                    pred_train_loss = 1 / self.k_step * pred_criteria(input=transformed[:, :-1, :], target=encoded[:, 1:, :]) + \
+                                      1 / self.k_step * pred_criteria(input=transformed_2[:, :-1, :], target=encoded[:, 2:, :]) + \
+                                      1 / self.k_step * pred_criteria(input=transformed_3[:, :-1, :], target=encoded[:, 3:, :])
+
+                loss = rec_train_loss + pred_train_loss
                 valid_loss += loss.item()
 
         valid_loss /= len(valid_data_loader)

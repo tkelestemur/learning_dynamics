@@ -12,7 +12,7 @@ class PendulumDataset(Dataset):
             data = np.load('./pend_data/pendulum_200_step_1k_run_valid.npy')
             self.data = data.astype(np.float32)
         elif dataset_type == 'test':
-            data = np.load('./pend_data/pendulum_200_step_1k_run_test.npy')
+            data = np.load('./pend_data/pendulum_200_step_1k_run_valid.npy')
             self.data = data.astype(np.float32)
         else:
             raise NotImplementedError
