@@ -11,8 +11,8 @@ plt.style.use('ggplot')
 
 def test_model():
     # Load the model
-    checkpoint_path = './checkpoints/lstm_auto_encoder/new_checkpoint_16h_2step.pth'
-    model = LSTMAutoEncoder(input_size=2, action_size=1, hidden_size=16, num_layers=1, bias=True, k_step=1)
+    checkpoint_path = './checkpoints/lstm_auto_encoder/checkpoint_32h_2step_new2.pth'
+    model = LSTMAutoEncoder(input_size=2, action_size=1, hidden_size=32, num_layers=1, bias=True, k_step=1)
     model.load_state_dict(torch.load(checkpoint_path, map_location=torch.device('cpu')), strict=True)
     model.eval()
 

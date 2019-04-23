@@ -27,7 +27,7 @@ def view_env():
 
 def collect_pendulum_data():
 
-    num_runs = 10000
+    num_runs = 1000
     traj_horizon = 4.0
 
     env = suite.load(domain_name="pendulum", task_name="swingup", task_kwargs={'time_limit': traj_horizon})
@@ -47,7 +47,7 @@ def collect_pendulum_data():
                 state_action_t = np.array([2*np.pi + env.physics.data.qpos[0], env.physics.data.qvel[0], action[0]])
             else:
                 state_action_t = np.array([env.physics.data.qpos[0], env.physics.data.qvel[0], action])
-            print(state_action_t)
+            # print(state_action_t)
             # state_action_t = np.hstack((time_step.observation['orientation'], time_step.observation['velocity'], action))
             trajectory += [state_action_t]
 
@@ -58,7 +58,7 @@ def collect_pendulum_data():
 
     trajectories = np.array(trajectories)
 
-    np.save('./pend_data/pendulum_200_step_10k_run_valid_new2', trajectories)
+    np.save('./pend_data/pendulum_200_step_1k_run_valid_new2', trajectories)
 
 
 if __name__ == '__main__':
