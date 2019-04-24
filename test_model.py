@@ -55,11 +55,11 @@ def trajectory_prediction():
         #         states_net[0, i+1] = state_decoded[:, -1, :]
 
         states_net = states_net.view(200, 3).numpy()
-        ax.plot(states_net[:, 0], '--', label=str(j+1) + '-step loss [angle]', linewidth=2)
-        ax.plot(states_net[:, 2], '--', label=str(j + 1) + '-step loss [velocity]', linewidth=2)
+        ax.plot(states_net[:, 0], '--', label='position [' + str(j+1) + '-step loss]', linewidth=2)
+        ax.plot(states_net[:, 2], '--', label='velocity [' + str(j+1) + '-step loss]', linewidth=2)
         # ax.plot(states_net[:, 0], '--', label=str(j + 1) + '-step loss', linewidth=2)
-    ax.plot(states_sim[:, 0], c='r', label='true state [angle]', linewidth=2)
-    ax.plot(states_sim[:, 2], c='b', label='true state [velocity]', linewidth=2)
+    ax.plot(states_sim[:, 0], c='r', label='position [true state]', linewidth=2)
+    ax.plot(states_sim[:, 2], c='b', label='velocity [true state]', linewidth=2)
 
     plt.legend()
     plt.show()
