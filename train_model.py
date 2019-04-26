@@ -6,18 +6,20 @@ from networks.lstm_autoencoder import LSTMAutoEncoder
 from networks.linear_autoencoder import LinearAutoEncoder
 from data import PendulumDataset
 
+pend_train_data = PendulumDataset('train')
+pend_valid_data = PendulumDataset('valid')
+
+pend_train_loader = DataLoader(dataset=pend_train_data, batch_size=32,
+                               drop_last=True, shuffle=False, num_workers=4)
+
+pend_valid_loader = DataLoader(dataset=pend_valid_data, batch_size=len(pend_valid_data),
+                               drop_last=False, shuffle=False, num_workers=2)
+
+device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+
 
 def train_action_cond_lstm():
-    pend_train_data = PendulumDataset('train')
-    pend_test_data = PendulumDataset('test')
 
-    pend_train_loader = DataLoader(dataset=pend_train_data, batch_size=32, drop_last=True,
-                                   shuffle=False, num_workers=4)
-
-    pend_valid_loader = DataLoader(dataset=pend_test_data, batch_size=len(pend_test_data),
-                                   drop_last=False, shuffle=False, num_workers=2)
-
-    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     checkpoint_path = './checkpoints/checkpoint_5k_one_step_hidden_loss.pt'
     loss_path = './loss/loss_5k_one_step_hidden_loss.csv'
 
@@ -29,16 +31,6 @@ def train_action_cond_lstm():
 
 
 def train_lstm_auto_encoder(config):
-    pend_train_data = PendulumDataset('train')
-    pend_valid_data = PendulumDataset('valid')
-
-    pend_train_loader = DataLoader(dataset=pend_train_data, batch_size=config['batch_size'],
-                                   drop_last=True, shuffle=False, num_workers=4)
-
-    pend_valid_loader = DataLoader(dataset=pend_valid_data, batch_size=len(pend_valid_data),
-                                   drop_last=False, shuffle=False, num_workers=2)
-
-    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
     checkpoint_path = './checkpoints/lstm_auto_encoder/checkpoint_' + str(config['hidden_size']) + 'h_' + str(config['k_step']) + 'step' + config['prefix'] + '.pth'
     loss_path = './loss/lstm_auto_encoder/loss_' + str(config['hidden_size']) + 'h_' + str(config['k_step']) + 'step' + config['prefix'] + '.csv'
@@ -52,16 +44,6 @@ def train_lstm_auto_encoder(config):
 
 
 def train_linear_auto_encoder(config):
-    pend_train_data = PendulumDataset('train')
-    pend_valid_data = PendulumDataset('valid')
-
-    pend_train_loader = DataLoader(dataset=pend_train_data, batch_size=config['batch_size'],
-                                   drop_last=True, shuffle=False, num_workers=4)
-
-    pend_valid_loader = DataLoader(dataset=pend_valid_data, batch_size=len(pend_valid_data),
-                                   drop_last=False, shuffle=False, num_workers=2)
-
-    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
     checkpoint_path = './checkpoints/lstm_auto_encoder/checkpoint_' + str(config['hidden_size']) + 'h_' + str(
         config['k_step']) + 'step' + config['prefix'] + '.pth'

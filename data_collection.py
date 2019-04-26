@@ -7,19 +7,23 @@ import numpy as np
 def view_env():
     env = suite.load(domain_name="pendulum", task_name="swingup", task_kwargs={'time_limit': 4.0})
     env.physics.model.dof_damping[0] = 0.0
-    time_step = env.reset()
+    # env.physics.model.timestep = 1
+    # env.n_sub_steps = 100
+    env.physics.model.actuator_ctrllimited[0] = False
+    # time_step = env.reset()
 
     action_spec = env.action_spec()
 
     def random_policy(time_step):
         # del time_step
-        a = np.random.uniform(action_spec.minimum, action_spec.maximum, size=action_spec.shape)
-        if env.physics.data.qpos[0] < 0.0:
-            print('qpos {} qvel {}'.format(2*np.pi + env.physics.data.qpos[0], env.physics.data.qvel[0]))
-        else:
-            print('qpos {} qvel {}'.format(env.physics.data.qpos[0], env.physics.data.qvel[0]))
+        # a = np.random.uniform(-5.0, 5.0, size=action_spec.shape)
+        # if env.physics.data.qpos[0] < 0.0:
+        #     print('qpos {} qvel {}'.format(2*np.pi + env.physics.data.qpos[0], env.physics.data.qvel[0]))
+        # else:
+        #     print('qpos {} qvel {}'.format(env.physics.data.qpos[0], env.physics.data.qvel[0]))
         # print(time_step.observation['orientation'])
-        print(a[0])
+        a = 0.2
+        print(env.physics.data.time)
         return a
 
     viewer.launch(env, policy=random_policy)
@@ -27,11 +31,12 @@ def view_env():
 
 def collect_pendulum_data():
 
-    num_runs = 1000
-    traj_horizon = 4.0
+    num_runs = 10000
+    traj_horizon = 16.0
 
     env = suite.load(domain_name="pendulum", task_name="swingup", task_kwargs={'time_limit': traj_horizon})
     env.physics.model.dof_damping[0] = 0.0
+    # env.physics.model.timestep = 0.05
     action_spec = env.action_spec()
 
     trajectories = []
@@ -39,6 +44,7 @@ def collect_pendulum_data():
         time_step = env.reset()
         trajectory = []
         while not time_step.last():
+            # action = np.random.uniform(-5.0, 5.0, size=action_spec.shape)
             action = np.random.uniform(action_spec.minimum,
                                        action_spec.maximum,
                                        size=action_spec.shape)
@@ -51,14 +57,15 @@ def collect_pendulum_data():
             state_action_t = np.hstack((time_step.observation['orientation'], time_step.observation['velocity'], action))
             trajectory += [state_action_t]
 
-            time_step = env.step(action)
+            for i in range(4):
+                time_step = env.step(action)
 
         trajectory = np.array(trajectory)
         trajectories += [trajectory]
 
     trajectories = np.array(trajectories)
 
-    np.save('./pend_data/pendulum_200_step_1k_run_valid', trajectories)
+    np.save('./pend_data/pendulum_200_step_train_skip', trajectories)
 
 
 if __name__ == '__main__':
