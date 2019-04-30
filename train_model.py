@@ -39,7 +39,7 @@ def train_lstm_auto_encoder(config):
                             hidden_size=config['hidden_size'], num_layers=config['num_layers'], bias=config['bias'],
                             k_step=config['k_step'], checkpoint_path=checkpoint_path, loss_path=loss_path).to(device)
 
-    trained_model_path = './checkpoints/lstm_auto_encoder/checkpoint_1step.pth'
+    trained_model_path = './checkpoints/lstm_auto_encoder/checkpoint_16h_1step.pth'
     model.load_state_dict(torch.load(trained_model_path, map_location=device), strict=True)
 
     model.train_model(num_epochs=config['num_epochs'], train_data_loader=pend_train_loader,
