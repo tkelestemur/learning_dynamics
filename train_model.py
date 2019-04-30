@@ -19,7 +19,6 @@ device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cp
 
 
 def train_action_cond_lstm():
-
     checkpoint_path = './checkpoints/checkpoint_5k_one_step_hidden_loss.pt'
     loss_path = './loss/loss_5k_one_step_hidden_loss.csv'
 
@@ -31,23 +30,23 @@ def train_action_cond_lstm():
 
 
 def train_lstm_auto_encoder(config):
-
-    checkpoint_path = './checkpoints/lstm_auto_encoder/checkpoint_' + str(config['hidden_size']) + 'h_' + str(config['k_step']) + 'step' + config['prefix'] + '.pth'
-    loss_path = './loss/lstm_auto_encoder/loss_' + str(config['hidden_size']) + 'h_' + str(config['k_step']) + 'step' + config['prefix'] + '.csv'
+    checkpoint_path = './checkpoints/lstm_auto_encoder/checkpoint_' + str(config['hidden_size']) + 'h_' + str(
+        config['k_step']) + 'step' + config['prefix'] + '.pth'
+    loss_path = './loss/lstm_auto_encoder/loss_' + str(config['hidden_size']) + 'h_' + str(config['k_step']) + 'step' + \
+                config['prefix'] + '.csv'
 
     model = LSTMAutoEncoder(input_size=config['input_size'], action_size=config['action_size'], lr=config['lr'],
                             hidden_size=config['hidden_size'], num_layers=config['num_layers'], bias=config['bias'],
                             k_step=config['k_step'], checkpoint_path=checkpoint_path, loss_path=loss_path).to(device)
 
-    trained_model_path = './checkpoints/lstm_auto_encoder/checkpoint_16h_1step.pth'
-    model.load_state_dict(torch.load(trained_model_path, map_location=device), strict=True)
+    if config['curr_learning']:
+        model.load_state_dict(torch.load(config['pre_trained_path'], map_location=device), strict=True)
 
     model.train_model(num_epochs=config['num_epochs'], train_data_loader=pend_train_loader,
                       valid_data_loader=pend_valid_loader, device=device, save_model=config['save'])
 
 
 def train_linear_auto_encoder(config):
-
     checkpoint_path = './checkpoints/lstm_auto_encoder/checkpoint_' + str(config['hidden_size']) + 'h_' + str(
         config['k_step']) + 'step' + config['prefix'] + '.pth'
     loss_path = './loss/lstm_auto_encoder/loss_' + str(config['hidden_size']) + 'h_' + str(

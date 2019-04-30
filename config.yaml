@@ -5,7 +5,9 @@ parameters:
   hidden_size: 16
   num_layers: 1
   bias: True
-  num_epochs: 500
+  num_epochs: 600
   lr: 0.0001
   save: True
-  prefix: '_lstm_curr_1to3'
+  prefix: '_curr_1to3_2'
+  curr_learning: True
+  pre_trained_path: './checkpoints/lstm_auto_encoder/checkpoint_16h_1step.pth'
