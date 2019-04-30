@@ -39,6 +39,9 @@ def train_lstm_auto_encoder(config):
                             hidden_size=config['hidden_size'], num_layers=config['num_layers'], bias=config['bias'],
                             k_step=config['k_step'], checkpoint_path=checkpoint_path, loss_path=loss_path).to(device)
 
+    trained_model_path = './checkpoints/lstm_auto_encoder_checkpoint_1step.pth'
+    model.load_state_dict(torch.load(trained_model_path, map_location=device), strict=True)
+
     model.train_model(num_epochs=config['num_epochs'], train_data_loader=pend_train_loader,
                       valid_data_loader=pend_valid_loader, device=device, save_model=config['save'])
 
@@ -62,6 +65,6 @@ if __name__ == '__main__':
     with open('config.yaml', 'r') as f:
         config = yaml.load(f)
     print('Training parameters: {}'.format(config['parameters']))
-    # train_lstm_auto_encoder(config['parameters'])
-    train_linear_auto_encoder(config['parameters'])
+    train_lstm_auto_encoder(config['parameters'])
+    # train_linear_auto_encoder(config['parameters'])
     # train_action_cond_lstm()

@@ -17,7 +17,7 @@ ax.set_xlabel('Timestep')
 ax.set_ylabel('State')
 
 pend_test_data = PendulumDataset('valid')
-states, actions = pend_test_data[0]
+states, actions = pend_test_data[457]
 states_sim = states.numpy()
 ax.plot(states_sim[:, 0], c='r', label='position [true state]', linewidth=2)
 ax.plot(states_sim[:, 2], c='b', label='velocity [true state]', linewidth=2)
@@ -25,12 +25,12 @@ ax.plot(states_sim[:, 2], c='b', label='velocity [true state]', linewidth=2)
 
 def trajectory_prediction_lstm():
     # Load the model
-    # checkpoints = ['./checkpoints/lstm_auto_encoder/checkpoint_16h_1step.pth',
-    #                './checkpoints/lstm_auto_encoder/checkpoint_16h_2step.pth',
-    #                './checkpoints/lstm_auto_encoder/checkpoint_16h_3step.pth']
+    checkpoints = ['checkpoint_16h_1step.pth',
+                   'checkpoint_16h_2step.pth',
+                   'checkpoint_16h_3step.pth']
 
     checkpoints_path = './checkpoints/lstm_auto_encoder/'
-    checkpoints = ['checkpoint_16h_1step_lstm_skip.pth']
+    # checkpoints = ['checkpoint_16h_1step_lstm_skip.pth']
 
     # checkpoint_path = './checkpoints/lstm_auto_encoder/checkpoint_16h_2step.pth'
     model = LSTMAutoEncoder(input_size=3, action_size=1, hidden_size=16, num_layers=1, bias=True, k_step=1).eval()
@@ -65,7 +65,7 @@ def trajectory_prediction_lstm():
 
 
 def trajectory_prediction_linear():
-    checkpoints_path = './checkpoints/lstm_auto_encoder/'
+    checkpoints_path = './checkpoints/linear_auto_encoder/'
     checkpoints = ['checkpoint_16h_1step_linear_skip.pth']
 
     # checkpoint_path = './checkpoints/lstm_auto_encoder/checkpoint_16h_2step.pth'
@@ -145,7 +145,7 @@ def calculate_mse():
 
 if __name__ == '__main__':
     trajectory_prediction_lstm()
-    trajectory_prediction_linear()
+    # trajectory_prediction_linear()
     plt.legend()
     plt.show()
 

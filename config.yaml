@@ -1,11 +1,11 @@
 parameters:
   input_size: 3
   action_size: 1
-  k_step: 1
+  k_step: 3
   hidden_size: 16
   num_layers: 1
   bias: True
   num_epochs: 500
   lr: 0.0001
   save: True
-  prefix: '_linear_skip'
+  prefix: '_lstm_curr_1to3'
