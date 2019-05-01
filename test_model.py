@@ -1,4 +1,3 @@
-from dm_control import suite
 import torch
 import torch.nn.functional as F
 from tqdm import tqdm
@@ -42,23 +41,24 @@ def trajectory_prediction_lstm():
 
         states_net = torch.zeros(1, 200, 3)
         states_net[0, 0] = states[0]
-        for i in range(states.size(0)-1):
-            with torch.no_grad():
-                encoded, decoded = model.forward(states_net[:, :i+1, :])
-                transformed = model.transform(encoded, actions[:i+1])
-                transformed_decoded = model.f_decoder(transformed)
-                transformed_decoded = transformed_decoded[:, -1, :]
 
-                states_net[0, i+1] = transformed_decoded
-
-        # with torch.no_grad():
-        #     state_encoded, _ = model.lstm(states[0].view(1, 1, 3))
         # for i in range(states.size(0)-1):
         #     with torch.no_grad():
-        #         state_encoded = model.transform(state_encoded, actions[i])
-        #         state_decoded = model.f_decoder(state_encoded)
-        #         # print(state_decoded.shape)
-        #         states_net[0, i+1] = state_decoded[:, -1, :]
+        #         encoded, decoded = model.forward(states_net[:, :i+1, :])
+        #         transformed = model.transform(encoded, actions[:i+1])
+        #         transformed_decoded = model.f_decoder(transformed)
+        #         transformed_decoded = transformed_decoded[:, -1, :]
+        #
+        #         states_net[0, i+1] = transformed_decoded
+
+        with torch.no_grad():
+            state_encoded, _ = model.lstm(states[0].view(1, 1, 3))
+        for i in range(states.size(0)-1):
+            with torch.no_grad():
+                state_encoded = model.transform(state_encoded, actions[i])
+                state_decoded = model.f_decoder(state_encoded)
+                # print(state_decoded.shape)
+                states_net[0, i+1] = state_decoded[:, -1, :]
 
         states_net = states_net.view(200, 3).numpy()
         ax.plot(states_net[:, 0], '--', label='position - ' + checkpoint, linewidth=2)
@@ -128,5 +128,3 @@ if __name__ == '__main__':
     # trajectory_prediction_linear()
     plt.legend()
     plt.show()
-
-    # calculate_mse()
