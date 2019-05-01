@@ -1,13 +1,13 @@
 parameters:
   input_size: 3
   action_size: 1
-  k_step: 3
+  k_step: 1
   hidden_size: 16
   num_layers: 1
   bias: True
   num_epochs: 600
   lr: 0.0001
   save: True
-  prefix: '_curr_1to3_2'
-  curr_learning: True
+  prefix: '_linear'
+  curr_learning: False
   pre_trained_path: './checkpoints/lstm_auto_encoder/checkpoint_16h_1step.pth'

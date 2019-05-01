@@ -64,6 +64,6 @@ if __name__ == '__main__':
     with open('config.yaml', 'r') as f:
         config = yaml.load(f)
     print('Training parameters: {}'.format(config['parameters']))
-    train_lstm_auto_encoder(config['parameters'])
-    # train_linear_auto_encoder(config['parameters'])
+    # train_lstm_auto_encoder(config['parameters'])
+    train_linear_auto_encoder(config['parameters'])
     # train_action_cond_lstm()

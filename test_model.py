@@ -26,9 +26,7 @@ ax.plot(states_sim[:, 0], c='r', label='position [true state]', linewidth=2)
 def trajectory_prediction_lstm():
     # Load the model
     checkpoints = ['checkpoint_16h_1step.pth',
-                   'checkpoint_16h_2step.pth',
                    'checkpoint_16h_3step.pth',
-                   'checkpoint_16h_3step_curr_1to3.pth',
                    'checkpoint_16h_3step_curr_1to3_2.pth']
 
     checkpoints_path = './checkpoints/lstm_auto_encoder/'
@@ -69,7 +67,7 @@ def trajectory_prediction_lstm():
 
 def trajectory_prediction_linear():
     checkpoints_path = './checkpoints/linear_auto_encoder/'
-    checkpoints = ['checkpoint_16h_1step_linear_skip.pth']
+    checkpoints = ['checkpoint_16h_1step_linear.pth']
 
     # checkpoint_path = './checkpoints/lstm_auto_encoder/checkpoint_16h_2step.pth'
     model = LinearAutoEncoder(input_size=3, action_size=1, hidden_size=16, bias=True, k_step=1).eval()
