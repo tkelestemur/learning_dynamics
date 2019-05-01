@@ -10,7 +10,7 @@ plt.style.use('ggplot')
 
 def calculate_mse():
     # Load the model
-    checkpoint_path = './checkpoints/lstm_auto_encoder/checkpoint_16h_3step_curr_1to3_2.pth'
+    checkpoint_path = './checkpoints/lstm_auto_encoder/checkpoint_16h_1step.pth'
     model = LSTMAutoEncoder(input_size=3, action_size=1, hidden_size=16, num_layers=1, bias=True, k_step=3)
     model.load_state_dict(torch.load(checkpoint_path, map_location=torch.device('cpu')), strict=True)
     model.eval()
@@ -36,7 +36,7 @@ def calculate_mse():
         states_net = states_net.view(200, 3).numpy()
         prediction_error[j] = (np.square(states_sim - states_net)).mean(axis=1)
 
-    np.save('./results/checkpoint_16h_1to3step_mse', prediction_error)
+    np.save('./results/checkpoint_16h_1step_mse', prediction_error)
 
 
 if __name__ == '__main__':
