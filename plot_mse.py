@@ -11,7 +11,7 @@ def plot_mse():
     ax.set_xlabel('Timestep')
     ax.set_ylabel('Prediction MSE')
 
-    mse_16h_1step = np.load('./results/checkpoint_16h_3step_single_lstm.npy')
+    mse_16h_1step = np.load('./results/checkpoint_16h_1to3step_single_lstm.npy')
     mse_16h_1step_mean = np.mean(mse_16h_1step, axis=0)
     mse_16h_1step_std = np.std(mse_16h_1step, axis=0)
 
@@ -19,7 +19,7 @@ def plot_mse():
     # mse_16h_2step_mean = np.mean(mse_16h_2step, axis=0)
     # mse_16h_2step_std = np.std(mse_16h_2step, axis=0)
 
-    mse_16h_3step = np.load('./results/checkpoint_16h_3step_mse.npy')
+    mse_16h_3step = np.load('./results/checkpoint_16h_1to3step_mse.npy')
     mse_16h_3step_mean = np.mean(mse_16h_3step, axis=0)
     mse_16h_3step_std = np.std(mse_16h_3step, axis=0)
 
