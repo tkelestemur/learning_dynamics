@@ -6,7 +6,7 @@ import numpy as np
 
 class LSTMAutoEncoder(nn.Module):
 
-    def __init__(self, input_size, action_size, hidden_size, num_layers, bias=False, k_step=1, lr=1e-3, checkpoint_path=None,
+    def __init__(self, input_size, action_size, hidden_size, num_layers, bias=True, k_step=1, lr=1e-3, checkpoint_path=None,
                  loss_path=None):
         super(LSTMAutoEncoder, self).__init__()
 
