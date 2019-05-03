@@ -19,7 +19,7 @@ pend_test_data = PendulumDataset('valid')
 states, actions = pend_test_data[0]
 states_sim = states.numpy()
 ax.plot(states_sim[:, 0], c='r', label='position [true state]', linewidth=2)
-# ax.plot(states_sim[:, 2], c='b', label='velocity [true state]', linewidth=2)
+ax.plot(states_sim[:, 2], c='b', label='velocity [true state]', linewidth=2)
 
 
 def trajectory_prediction_lstm():
@@ -39,30 +39,31 @@ def trajectory_prediction_lstm():
         checkpoint_path = checkpoints_path + checkpoint
         model.load_state_dict(torch.load(checkpoint_path, map_location=torch.device('cpu')), strict=True)
 
-        states_net = torch.zeros(1, 200, 3)
-        states_net[0, 0] = states[0]
+        states_net = torch.zeros(200, 3)
+        states_net[0] = states[0]
 
+        state_t = states[0].view(1, 1, 3)
+        h_t = torch.zeros(1, 1, 16)
+        c_t = torch.zeros(1, 1, 16)
+        with torch.no_grad():
+            for t in range(states.size(0)-1):
+                encoded, (h_t, c_t) = model.lstm(state_t, (h_t, c_t))
+                transformed = model.transform(encoded, actions[t])
+                state_t = model.f_decoder(transformed)
+                states_net[t+1] = state_t.squeeze()
+
+        # with torch.no_grad():
+        #     state_encoded, _ = model.lstm(states[0].view(1, 1, 3))
         # for i in range(states.size(0)-1):
         #     with torch.no_grad():
-        #         encoded, decoded = model.forward(states_net[:, :i+1, :])
-        #         transformed = model.transform(encoded, actions[:i+1])
-        #         transformed_decoded = model.f_decoder(transformed)
-        #         transformed_decoded = transformed_decoded[:, -1, :]
-        #
-        #         states_net[0, i+1] = transformed_decoded
+        #         state_encoded = model.transform(state_encoded, actions[i])
+        #         state_decoded = model.f_decoder(state_encoded)
+        #         # print(state_decoded.shape)
+        #         states_net[0, i+1] = state_decoded[:, -1, :]
 
-        with torch.no_grad():
-            state_encoded, _ = model.lstm(states[0].view(1, 1, 3))
-        for i in range(states.size(0)-1):
-            with torch.no_grad():
-                state_encoded = model.transform(state_encoded, actions[i])
-                state_decoded = model.f_decoder(state_encoded)
-                # print(state_decoded.shape)
-                states_net[0, i+1] = state_decoded[:, -1, :]
-
-        states_net = states_net.view(200, 3).numpy()
+        states_net = states_net.numpy()
         ax.plot(states_net[:, 0], '--', label='position - ' + checkpoint, linewidth=2)
-        # ax.plot(states_net[:, 2], '--', label='velocity - ' + checkpoint, linewidth=2)
+        ax.plot(states_net[:, 2], '--', label='velocity - ' + checkpoint, linewidth=2)
 
 
 def trajectory_prediction_linear():

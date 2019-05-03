@@ -31,7 +31,7 @@ def train_action_cond_lstm():
 
 def train_lstm_auto_encoder(config):
     checkpoint_path = './checkpoints/lstm_auto_encoder/checkpoint_' + str(config['hidden_size']) + 'h_' + str(
-        config['k_step']) + 'step' + config['prefix'] + '.pth'
+        config['k_step']) + 'step_lstm' + config['prefix'] + '.pth'
     loss_path = './loss/lstm_auto_encoder/loss_' + str(config['hidden_size']) + 'h_' + str(config['k_step']) + 'step' + \
                 config['prefix'] + '.csv'
 
@@ -48,7 +48,7 @@ def train_lstm_auto_encoder(config):
 
 def train_linear_auto_encoder(config):
     checkpoint_path = './checkpoints/lstm_auto_encoder/checkpoint_' + str(config['hidden_size']) + 'h_' + str(
-        config['k_step']) + 'step' + config['prefix'] + '.pth'
+        config['k_step']) + 'step_linear' + config['prefix'] + '.pth'
     loss_path = './loss/lstm_auto_encoder/loss_' + str(config['hidden_size']) + 'h_' + str(
         config['k_step']) + 'step' + config['prefix'] + '.csv'
 
@@ -64,6 +64,6 @@ if __name__ == '__main__':
     with open('config.yaml', 'r') as f:
         config = yaml.load(f)
     print('Training parameters: {}'.format(config['parameters']))
-    # train_lstm_auto_encoder(config['parameters'])
-    train_linear_auto_encoder(config['parameters'])
+    train_lstm_auto_encoder(config['parameters'])
+    # train_linear_auto_encoder(config['parameters'])
     # train_action_cond_lstm()
