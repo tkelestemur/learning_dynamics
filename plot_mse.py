@@ -1,5 +1,8 @@
-import matplotlib.pyplot as plt
+import torch
 import numpy as np
+import matplotlib.pyplot as plt
+
+
 plt.style.use('ggplot')
 
 
@@ -11,26 +14,17 @@ def plot_mse():
     ax.set_xlabel('Timestep')
     ax.set_ylabel('Prediction MSE')
 
-    mse_16h_1step = np.load('./results/checkpoint_16h_1to3step_single_lstm.npy')
-    mse_16h_1step_mean = np.mean(mse_16h_1step, axis=0)
-    mse_16h_1step_std = np.std(mse_16h_1step, axis=0)
+    results = ['./results/mse_16h_1step_lstm.pt',
+               './results/mse_16h_3step_lstm.pt',
+               './results/mse_16h_3step_lstm_curr_1to3.pt']
 
-    # mse_16h_2step = np.load('./results/checkpoint_16h_2step_mse.npy')
-    # mse_16h_2step_mean = np.mean(mse_16h_2step, axis=0)
-    # mse_16h_2step_std = np.std(mse_16h_2step, axis=0)
+    for result in results:
+        mse = torch.load(result)
+        mean = torch.mean(mse, dim=0)
+        std = torch.std(mse, dim=0)
 
-    mse_16h_3step = np.load('./results/checkpoint_16h_1to3step_mse.npy')
-    mse_16h_3step_mean = np.mean(mse_16h_3step, axis=0)
-    mse_16h_3step_std = np.std(mse_16h_3step, axis=0)
-
-    ax.plot(mse_16h_1step_mean, c='r', label='16 hidden - 3 step single lstm', linewidth=2)
-    ax.fill_between(range(mse_16h_1step_mean.shape[0]), mse_16h_1step_mean-mse_16h_1step_std, mse_16h_1step_mean+mse_16h_1step_std, alpha=0.2, color='r')
-
-    # ax.plot(mse_16h_2step_mean, c='b', label='16 hidden - 2 step', linewidth=2)
-    # ax.fill_between(range(mse_16h_2step_mean.shape[0]), mse_16h_2step_mean-mse_16h_2step_std, mse_16h_2step_mean+mse_16h_2step_std, alpha=0.2, color='b')
-
-    ax.plot(mse_16h_3step_mean, c='g', label='16 hidden - 3 step multiple lstm', linewidth=2)
-    ax.fill_between(range(mse_16h_3step_mean.shape[0]), mse_16h_3step_mean-mse_16h_3step_std, mse_16h_3step_mean+mse_16h_3step_std, alpha=0.2, color='g')
+        ax.plot(mean.numpy(), label=result.split('/')[-1], linewidth=2)
+        ax.fill_between(range(mse.size(1)), (mean-std).numpy(), (mean+std).numpy(), alpha=0.2)
 
     plt.legend()
     plt.show()

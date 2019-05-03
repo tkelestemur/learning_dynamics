@@ -62,7 +62,7 @@ def train_linear_auto_encoder(config):
 
 if __name__ == '__main__':
     with open('config.yaml', 'r') as f:
-        config = yaml.load(f)
+        config = yaml.full_load(f)
     print('Training parameters: {}'.format(config['parameters']))
     train_lstm_auto_encoder(config['parameters'])
     # train_linear_auto_encoder(config['parameters'])

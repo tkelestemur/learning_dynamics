@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from torch import optim
+import torch.nn.functional as F
 import numpy as np
 
 
@@ -18,20 +19,34 @@ class LSTMAutoEncoder(nn.Module):
         self.checkpoint_path = checkpoint_path
         self.loss_path = loss_path
 
-        self.lstm = nn.LSTM(input_size=input_size, hidden_size=hidden_size,
+        self.lstm = nn.LSTM(input_size=hidden_size, hidden_size=hidden_size,
                             num_layers=num_layers, batch_first=True)
 
-        self.f_decoder = nn.Linear(in_features=hidden_size, out_features=input_size)
+        self.f_encoder1 = nn.Linear(in_features=input_size, out_features=hidden_size)
+        self.f_encoder2 = nn.Linear(in_features=hidden_size, out_features=hidden_size)
+
+        self.f_decoder1 = nn.Linear(in_features=hidden_size, out_features=hidden_size)
+        self.f_decoder2 = nn.Linear(in_features=hidden_size, out_features=input_size)
+
         self.f_action = nn.Linear(in_features=action_size, out_features=hidden_size, bias=bias)
         self.f_hidden = nn.Linear(in_features=hidden_size, out_features=hidden_size, bias=bias)
 
     def forward(self, s):
 
-        encoded, hidden = self.lstm(s)
-
-        decoded = self.f_decoder(encoded)
+        encoded, hidden = self.lstm(self.encode(s))
+        decoded = self.decode(encoded)
+        # encoded, hidden = self.lstm(s)
+        # decoded = self.f_decoder(encoded)
 
         return encoded, decoded
+
+    def encode(self, state):
+        encoded = self.f_encoder2(F.relu(self.f_encoder1(state)))
+        return encoded
+
+    def decode(self, encoded):
+        decoded = self.f_decoder2(F.relu(self.f_decoder1(encoded)))
+        return decoded
 
     def transform(self, s_hidden, a):
 
