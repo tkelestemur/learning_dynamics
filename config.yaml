@@ -2,7 +2,7 @@ parameters:
   input_size: 3
   action_size: 1
   k_step: 3
-  hidden_size: 64
+  hidden_size: 256
   num_layers: 1
   bias: True
   num_epochs: 5000
