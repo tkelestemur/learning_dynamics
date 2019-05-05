@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch import optim
 import torch.nn.functional as F
 import numpy as np
-
+import utils
 
 class LSTMAutoEncoder(nn.Module):
 
@@ -63,6 +63,7 @@ class LSTMAutoEncoder(nn.Module):
 
         print('Starting training...')
         epoch_loss = np.zeros((num_epochs, 2))
+        best_epoch_loss = 0.0
         for epoch in range(num_epochs):
             self.train()
             train_loss, rec_train_loss, pred_train_loss = 0, 0, 0
@@ -123,18 +124,16 @@ class LSTMAutoEncoder(nn.Module):
             else:
                 valid_loss = 0
 
-            # print('Epoch {} Pred Loss: {:.6f} Rec Loss: {:.6f} Total Loss: {:.6f} Validation Loss: {:.6f}'.format(
-            #     epoch + 1, pred_loss, rec_loss, train_loss, valid_loss))
-
             print('Epoch {} Training Loss: {:.7f} Validation Loss: {:.7f}'.format(epoch + 1, train_loss, valid_loss))
+            epoch_loss[epoch] = np.hstack((train_loss, valid_loss))
+
+            is_best = valid_loss <= best_epoch_loss
+            if is_best:
+                print('New best checkpoint!')
+                best_epoch_loss = valid_loss
 
             if save_model:
-                epoch_loss[epoch] = np.hstack((train_loss, valid_loss))
-                if not self.checkpoint_path:
-                    print('Checkpoint path is not specified! Can\'t save the model..')
-                else:
-                    with open(self.checkpoint_path, 'wb') as f:
-                        torch.save(self.state_dict(), f)
+                utils.save_checkpoint(self.state_dict(), checkpoint_name, is_best)
 
         if save_model:
             with open(self.loss_path, 'wb') as f:

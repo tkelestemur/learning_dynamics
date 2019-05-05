@@ -14,9 +14,11 @@ def plot_mse():
     ax.set_xlabel('Timestep')
     ax.set_ylabel('Prediction MSE')
 
-    results = ['./results/mse_16h_1step_lstm.pt',
-               './results/mse_16h_3step_lstm.pt',
-               './results/mse_16h_3step_lstm_curr_1to3.pt']
+    results = ['./results/mse_16h_3step_lstm.pt',
+               './results/mse_16h_3step_lstm_nonlinear_5k_epochs.pt',
+               './results/mse_64h_3step_lstm_nonlinear_5k_epochs.pt',
+               './results/mse_128h_3step_lstm_nonlinear_5k_epochs.pt',
+               './results/mse_256h_3step_lstm_nonlinear_5k_epochs.pt']
 
     for result in results:
         mse = torch.load(result)
@@ -24,7 +26,7 @@ def plot_mse():
         std = torch.std(mse, dim=0)
 
         ax.plot(mean.numpy(), label=result.split('/')[-1], linewidth=2)
-        ax.fill_between(range(mse.size(1)), (mean-std).numpy(), (mean+std).numpy(), alpha=0.2)
+        # ax.fill_between(range(mse.size(1)), (mean-std).numpy(), (mean+std).numpy(), alpha=0.2)
 
     plt.legend()
     plt.show()
