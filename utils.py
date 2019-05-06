@@ -1,4 +1,5 @@
 import os
+import shutil
 import torch
 import yaml
 
@@ -34,8 +35,7 @@ def get_device():
 def save_checkpoint(state, checkpoint_path, is_best):
     torch.save(state, checkpoint_path)
     if is_best:
-        checkpoint_name, _ = checkpoint_path.split('.')
-        checkpoint_best_path = checkpoint_path + '_best.pth'
+        checkpoint_best_path = checkpoint_path.replace('.pth', '_best.pth')
         shutil.copyfile(checkpoint_path, checkpoint_best_path)
 
 

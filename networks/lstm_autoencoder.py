@@ -63,7 +63,7 @@ class LSTMAutoEncoder(nn.Module):
 
         print('Starting training...')
         epoch_loss = np.zeros((num_epochs, 2))
-        best_epoch_loss = 0.0
+        best_epoch_loss = 100000.0
         for epoch in range(num_epochs):
             self.train()
             train_loss, rec_train_loss, pred_train_loss = 0, 0, 0
@@ -133,7 +133,7 @@ class LSTMAutoEncoder(nn.Module):
                 best_epoch_loss = valid_loss
 
             if save_model:
-                utils.save_checkpoint(self.state_dict(), checkpoint_name, is_best)
+                utils.save_checkpoint(self.state_dict(), self.checkpoint_path, is_best)
 
         if save_model:
             with open(self.loss_path, 'wb') as f:
