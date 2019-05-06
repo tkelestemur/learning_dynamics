@@ -18,11 +18,12 @@ class Config:
         self.num_epochs = config['num_epochs']
         self.lr = config['lr']
         self.save = config['save']
+        self.encoding = config['encoding']
         self.prefix = config['prefix']
         self.curr_learning = config['curr_learning']
         self.pre_trained_path = config['pre_trained_path']
 
-        config_prefix = str(self.hidden_size) + 'h_' + str(self.k_step) + 'step_' + str(self.num_epochs) + '_epochs'
+        config_prefix = str(self.hidden_size) + 'h_' + str(self.k_step) + 'step_' + str(self.num_epochs) + '_epochs_' + self.encoding
         self.loss_path = config_prefix + '.csv'
         self.checkpoint_path =  config_prefix + '.pth'
 
@@ -32,12 +33,15 @@ def get_device():
     return device
 
 
-def save_checkpoint(state, checkpoint_path, is_best):
-    torch.save(state, checkpoint_path)
-    if is_best:
+def save_checkpoint(state, checkpoint_path, is_best, save_only_best=True):
+    if not save_only_best:
+        torch.save(state, checkpoint_path)
+        if is_best:
+            checkpoint_best_path = checkpoint_path.replace('.pth', '_best.pth')
+            shutil.copyfile(checkpoint_path, checkpoint_best_path)
+    else:
         checkpoint_best_path = checkpoint_path.replace('.pth', '_best.pth')
-        shutil.copyfile(checkpoint_path, checkpoint_best_path)
-
+        torch.save(state, checkpoint_best_path)
 
 def load_checkpoint(model, checkpoint_path, device):
     if not os.path.exists(checkpoint_path):

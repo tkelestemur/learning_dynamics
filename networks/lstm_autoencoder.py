@@ -7,17 +7,16 @@ import utils
 
 class LSTMAutoEncoder(nn.Module):
 
-    def __init__(self, input_size, action_size, hidden_size, num_layers, bias=True, k_step=1, lr=1e-3, checkpoint_path=None,
-                 loss_path=None):
+    def __init__(self, input_size, action_size, hidden_size, num_layers,
+                 bias=True, k_step=1, lr=1e-3, checkpoint_path=None,
+                 encoding='nonlinear', loss_path=None):
         super(LSTMAutoEncoder, self).__init__()
 
-        self.action_size = action_size
-        self.input_size = input_size
-        self.hidden_size = hidden_size
         self.lr = lr
         self.k_step = k_step
         self.checkpoint_path = checkpoint_path
         self.loss_path = loss_path
+        self.auto_encoder_type = encoding
 
         self.lstm = nn.LSTM(input_size=hidden_size, hidden_size=hidden_size,
                             num_layers=num_layers, batch_first=True)
@@ -25,6 +24,7 @@ class LSTMAutoEncoder(nn.Module):
         self.f_encoder1 = nn.Linear(in_features=input_size, out_features=hidden_size)
         self.f_encoder2 = nn.Linear(in_features=hidden_size, out_features=hidden_size)
 
+        self.f_decoder = nn.Linear(in_features=hidden_size, out_features=input_size)
         self.f_decoder1 = nn.Linear(in_features=hidden_size, out_features=hidden_size)
         self.f_decoder2 = nn.Linear(in_features=hidden_size, out_features=input_size)
 
@@ -32,11 +32,14 @@ class LSTMAutoEncoder(nn.Module):
         self.f_hidden = nn.Linear(in_features=hidden_size, out_features=hidden_size, bias=bias)
 
     def forward(self, s):
-
-        encoded, hidden = self.lstm(self.encode(s))
-        decoded = self.decode(encoded)
-        # encoded, hidden = self.lstm(s)
-        # decoded = self.f_decoder(encoded)
+        if self.auto_encoder_type == 'nonlinear':
+            encoded, hidden = self.lstm(self.encode(s))
+            decoded = self.decode(encoded)
+        elif self.auto_encoder_type == 'linear':
+            encoded, hidden = self.lstm(s)
+            decoded = self.f_decoder(encoded)
+        else:
+            raise NotImplementedError
 
         return encoded, decoded
 

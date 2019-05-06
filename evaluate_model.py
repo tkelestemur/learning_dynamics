@@ -9,13 +9,12 @@ plt.style.use('ggplot')
 
 
 def calculate_mse():
-
-    checkpoint_path = './checkpoints/lstm_auto_encoder/checkpoint_256h_3step_lstm_nonlinear_5k_epochs.pth'
-    model = LSTMAutoEncoder(input_size=3, action_size=1, hidden_size=256, num_layers=1, k_step=3).eval()
+    
+    checkpoint_path = './checkpoints/lstm_auto_encoder/32h_1step_5000_epochs.pth'
+    model = LSTMAutoEncoder(input_size=3, action_size=1, hidden_size=32, num_layers=1, k_step=3).eval()
     model.load_state_dict(torch.load(checkpoint_path, map_location=torch.device('cpu')), strict=True)
 
     pend_test_data = PendulumDataset('valid')
-    # prediction_error = np.zeros((len(pend_test_data), pend_test_data.data.shape[1]))
     test_set_pred_error = torch.zeros((len(pend_test_data), pend_test_data.data.shape[1]))
 
     for i in tqdm(range(len(pend_test_data))):
@@ -24,8 +23,8 @@ def calculate_mse():
         states_net[0] = states[0]
 
         state_t = states[0].view(1, 1, 3)
-        h_t = torch.zeros(1, 1, 256)
-        c_t = torch.zeros(1, 1, 256)
+        h_t = torch.zeros(1, 1, 32)
+        c_t = torch.zeros(1, 1, 32)
         # with torch.no_grad():
         #     for t in range(states.size(0)-1):
         #         encoded, (h_t, c_t) = model.lstm(state_t, (h_t, c_t))
@@ -54,11 +53,7 @@ def calculate_mse():
         error = torch.mean(error, dim=1)
         test_set_pred_error[i] = error
 
-    torch.save(test_set_pred_error, './results/mse_256h_3step_lstm_nonlinear_5k_epochs.pt')
-
-        # prediction_error[j] = (np.square(states_sim - states_net)).mean(axis=1)
-
-    # np.save('./results/checkpoint_16h_1to3step_single_lstm', prediction_error)
+    torch.save(test_set_pred_error, './results/mse_32h_1step_5000_epochs_last.pt')
 
 if __name__ == '__main__':
     calculate_mse()
