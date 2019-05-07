@@ -18,19 +18,21 @@ def plot_mse():
                 # './results/mse_16h_3step_5000_epochs_best.pt',
                # './results/mse_32h_1step_5000_epochs_best.pt',
                # './results/mse_32h_3step_5000_epochs_best.pt',
+               # './results/mse_64h_3step_5000_epochs_best.pt',
                './results/mse_128h_3step_5000_epochs_best.pt',
-               # './results/mse_16h_3step_5000_epochs_last.pt',
-               # './results/mse_32h_1step_5000_epochs_last.pt',
-               # './results/mse_32h_3step_5000_epochs_last.pt',
-               './results/mse_128h_3step_5000_epochs_last.pt'
+               # './results/mse_256h_3step_5000_epochs_best.pt',
+               # './results/mse_512h_3step_5000_epochs_best.pt'
+               './results/mse_128h_3step_5000_epochs_best_hidden.pt'
                ]
-    for result in results:
+
+    labels = ['128h - w/ lstm', '128h - w/o lstm']
+    for i, result in enumerate(results):
         mse = torch.load(result)
         mean = torch.mean(mse, dim=0)
         std = torch.std(mse, dim=0)
 
-        ax.plot(mean.numpy(), label=result.split('/')[-1], linewidth=2)
-        # ax.fill_between(range(mse.size(1)), (mean-std).numpy(), (mean+std).numpy(), alpha=0.2)
+        ax.plot(mean.numpy(), label=labels[i], linewidth=2)
+        ax.fill_between(range(mse.size(1)), (mean-std).numpy(), (mean+std).numpy(), alpha=0.2)
 
     plt.legend()
     plt.show()

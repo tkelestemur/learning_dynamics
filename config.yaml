@@ -1,13 +1,13 @@
 input_size: 3
 action_size: 1
 k_step: 3
-hidden_size: 16
+hidden_size: 128
 num_layers: 1
 bias: True
 num_epochs: 5000
 lr: 0.0001
-save: False
+save: True
 encoding: 'linear'
 prefix: '_nonlinear_5k_epochs'
 curr_learning: False
-pre_trained_path: './checkpoints/lstm_auto_encoder/checkpoint_16h_1step_lstm_nonlinear.pth'
+pre_trained_path: ''

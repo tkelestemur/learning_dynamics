@@ -16,7 +16,7 @@ ax.set_xlabel('Timestep')
 ax.set_ylabel('State')
 
 pend_test_data = PendulumDataset('valid')
-states, actions = pend_test_data[0]
+states, actions = pend_test_data[583]
 states_sim = states.numpy()
 ax.plot(states_sim[:, 0], c='r', label='position [true state]', linewidth=2)
 ax.plot(states_sim[:, 2], c='b', label='velocity [true state]', linewidth=2)
@@ -24,11 +24,11 @@ ax.plot(states_sim[:, 2], c='b', label='velocity [true state]', linewidth=2)
 
 def trajectory_prediction_lstm():
 
-    checkpoints = ['checkpoint_64h_3step_lstm_nonlinear_5k_epochs.pth']
+    checkpoints = ['128h_3step_5000_epochs_best.pth']
 
     checkpoints_path = './checkpoints/lstm_auto_encoder/'
 
-    model = LSTMAutoEncoder(input_size=3, action_size=1, hidden_size=64, num_layers=1, k_step=1).eval()
+    model = LSTMAutoEncoder(input_size=3, action_size=1, hidden_size=128, num_layers=1, k_step=1).eval()
 
     for j, checkpoint in enumerate(checkpoints):
         checkpoint_path = checkpoints_path + checkpoint
@@ -38,23 +38,36 @@ def trajectory_prediction_lstm():
         states_net[0] = states[0]
 
         state_t = states[0].view(1, 1, 3)
-        h_t = torch.zeros(1, 1, 64)
-        c_t = torch.zeros(1, 1, 64)
+        h_t = torch.zeros(1, 1, 128)
+        c_t = torch.zeros(1, 1, 128)
+
+
+        # with torch.no_grad():
+        #     for t in range(states.size(0)-1):
+        #         encoded = model.encode(state_t)
+        #         encoded, (h_t, c_t) = model.lstm(encoded, (h_t, c_t))
+        #         transformed = model.transform(encoded, actions[t])
+        #         state_t = model.decode(transformed)
+        #         states_net[t+1] = state_t.squeeze()
+
+
+        with torch.no_grad():
+            state_hidden_t = model.encode(state_t)
+            state_hidden_t, (h_t, c_t) = model.lstm(state_hidden_t, (h_t, c_t))
+            for t in range(states.size(0)-1):
+                next_state_hiddent_t = model.transform(state_hidden_t, actions[t])
+                state_t = model.decode(next_state_hiddent_t)
+                states_net[t+1] = state_t
+                state_hidden_t = next_state_hiddent_t
+
+
+
         # with torch.no_grad():
         #     for t in range(states.size(0)-1):
         #         encoded, (h_t, c_t) = model.lstm(state_t, (h_t, c_t))
         #         transformed = model.transform(encoded, actions[t])
         #         state_t = model.f_decoder(transformed)
         #         states_net[t+1] = state_t.squeeze()
-
-        with torch.no_grad():
-            for t in range(states.size(0)-1):
-                encoded = model.encode(state_t)
-                encoded, (h_t, c_t) = model.lstm(encoded, (h_t, c_t))
-                transformed = model.transform(encoded, actions[t])
-                state_t = model.decode(transformed)
-                states_net[t+1] = state_t.squeeze()
-
 
         # with torch.no_grad():
         #     state_encoded, _ = model.lstm(states[0].view(1, 1, 3))
@@ -66,8 +79,8 @@ def trajectory_prediction_lstm():
         #         states_net[0, i+1] = state_decoded[:, -1, :]
 
         states_net = states_net.numpy()
-        ax.plot(states_net[:, 0], '--', label='position - ' + checkpoint, linewidth=2)
-        ax.plot(states_net[:, 2], '--', label='velocity - ' + checkpoint, linewidth=2)
+        ax.plot(states_net[:, 0], '--', label='position - 128h - w/ lstm', linewidth=2)
+        ax.plot(states_net[:, 2], '--', label='velocity - 128h - w/ lstm', linewidth=2)
 
 
 def trajectory_prediction_linear():

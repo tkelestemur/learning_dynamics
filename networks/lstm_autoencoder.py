@@ -21,12 +21,14 @@ class LSTMAutoEncoder(nn.Module):
         self.lstm = nn.LSTM(input_size=hidden_size, hidden_size=hidden_size,
                             num_layers=num_layers, batch_first=True)
 
-        self.f_encoder1 = nn.Linear(in_features=input_size, out_features=hidden_size)
-        self.f_encoder2 = nn.Linear(in_features=hidden_size, out_features=hidden_size)
+        if encoding == 'linear':
+            self.f_decoder = nn.Linear(in_features=hidden_size, out_features=input_size)
+        elif encoding == 'nonlinear':
+            self.f_encoder1 = nn.Linear(in_features=input_size, out_features=hidden_size)
+            self.f_encoder2 = nn.Linear(in_features=hidden_size, out_features=hidden_size)
 
-        self.f_decoder = nn.Linear(in_features=hidden_size, out_features=input_size)
-        self.f_decoder1 = nn.Linear(in_features=hidden_size, out_features=hidden_size)
-        self.f_decoder2 = nn.Linear(in_features=hidden_size, out_features=input_size)
+            self.f_decoder1 = nn.Linear(in_features=hidden_size, out_features=hidden_size)
+            self.f_decoder2 = nn.Linear(in_features=hidden_size, out_features=input_size)
 
         self.f_action = nn.Linear(in_features=action_size, out_features=hidden_size, bias=bias)
         self.f_hidden = nn.Linear(in_features=hidden_size, out_features=hidden_size, bias=bias)
