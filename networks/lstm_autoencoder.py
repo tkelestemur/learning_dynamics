@@ -33,7 +33,7 @@ class LSTMAutoEncoder(nn.Module):
         self.f_action = nn.Linear(in_features=action_size, out_features=hidden_size, bias=bias)
         self.f_hidden = nn.Linear(in_features=hidden_size, out_features=hidden_size, bias=bias)
 
-        self.act_func = getattr(F, activation_func)
+        self.act_func = getattr(torch, activation_func)
 
     def forward(self, s):
         if self.auto_encoder_type == 'nonlinear':
@@ -49,7 +49,7 @@ class LSTMAutoEncoder(nn.Module):
 
     def encode(self, state):
         encoded = self.act_func(self.f_encoder1(state))
-        encoded = self.f_decoder2(encoded)
+        encoded = self.f_encoder2(encoded)
         return encoded
 
     def decode(self, encoded):
