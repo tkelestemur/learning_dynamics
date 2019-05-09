@@ -23,7 +23,7 @@ class Config:
         self.curr_learning = config['curr_learning']
         self.pre_trained_path = config['pre_trained_path']
 
-        config_prefix = str(self.hidden_size) + 'h_' + str(self.k_step) + 'step_' + str(self.num_epochs) + '_epochs_' + self.encoding
+        config_prefix = str(self.hidden_size) + 'h_' + str(self.k_step) + 'step_' + str(self.num_epochs) + '_epochs_' + self.encoding + '_tanh'
         self.loss_path = config_prefix + '.csv'
         self.checkpoint_path =  config_prefix + '.pth'
 

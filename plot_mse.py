@@ -22,10 +22,10 @@ def plot_mse():
                './results/mse_128h_3step_5000_epochs_best.pt',
                # './results/mse_256h_3step_5000_epochs_best.pt',
                # './results/mse_512h_3step_5000_epochs_best.pt'
-               './results/mse_128h_3step_5000_epochs_best_hidden.pt'
+               './results/mse_128h_3step_5000_epochs_linear_best.pt'
                ]
 
-    labels = ['128h - w/ lstm', '128h - w/o lstm']
+    labels = ['128h - w/ nonlinaer autoencoder', '128h - w/o nonlinear autoencoder']
     for i, result in enumerate(results):
         mse = torch.load(result)
         mean = torch.mean(mse, dim=0)

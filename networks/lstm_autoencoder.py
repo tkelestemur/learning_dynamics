@@ -8,7 +8,7 @@ import utils
 class LSTMAutoEncoder(nn.Module):
 
     def __init__(self, input_size, action_size, hidden_size, num_layers,
-                 bias=True, k_step=1, lr=1e-3, checkpoint_path=None,
+                 activation_func='tanh', bias=True, k_step=1, lr=1e-3, checkpoint_path=None,
                  encoding='nonlinear', loss_path=None):
         super(LSTMAutoEncoder, self).__init__()
 
@@ -33,6 +33,8 @@ class LSTMAutoEncoder(nn.Module):
         self.f_action = nn.Linear(in_features=action_size, out_features=hidden_size, bias=bias)
         self.f_hidden = nn.Linear(in_features=hidden_size, out_features=hidden_size, bias=bias)
 
+        self.act_func = getattr(F, activation_func)
+
     def forward(self, s):
         if self.auto_encoder_type == 'nonlinear':
             encoded, hidden = self.lstm(self.encode(s))
@@ -46,11 +48,13 @@ class LSTMAutoEncoder(nn.Module):
         return encoded, decoded
 
     def encode(self, state):
-        encoded = self.f_encoder2(F.relu(self.f_encoder1(state)))
+        encoded = self.act_func(self.f_encoder1(state))
+        encoded = self.f_decoder2(encoded)
         return encoded
 
     def decode(self, encoded):
-        decoded = self.f_decoder2(F.relu(self.f_decoder1(encoded)))
+        decoded = self.act_func(self.f_decoder1(encoded))
+        decoded = self.f_decoder2(decoded)
         return decoded
 
     def transform(self, s_hidden, a):
