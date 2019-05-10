@@ -8,7 +8,7 @@ import utils
 class LSTMAutoEncoder(nn.Module):
 
     def __init__(self, input_size, action_size, hidden_size, num_layers,
-                 activation_func='tanh', bias=True, k_step=1, lr=1e-3, checkpoint_path=None,
+                 activation_func='relu', bias=True, k_step=1, lr=1e-3, checkpoint_path=None,
                  encoding='nonlinear', loss_path=None):
         super(LSTMAutoEncoder, self).__init__()
 

@@ -32,7 +32,7 @@ def view_env():
 def collect_pendulum_data():
 
     num_runs = 10000
-    traj_horizon = 16.0
+    traj_horizon = 4.0
 
     env = suite.load(domain_name="pendulum", task_name="swingup", task_kwargs={'time_limit': traj_horizon})
     env.physics.model.dof_damping[0] = 0.0
@@ -45,27 +45,22 @@ def collect_pendulum_data():
         trajectory = []
         while not time_step.last():
             # action = np.random.uniform(-5.0, 5.0, size=action_spec.shape)
-            action = np.random.uniform(action_spec.minimum,
-                                       action_spec.maximum,
-                                       size=action_spec.shape)
-            # if env.physics.data.qpos[0] < 0.0:
-            #
-            #     state_action_t = np.array([2*np.pi + env.physics.data.qpos[0], env.physics.data.qvel[0], action[0]])
-            # else:
-            #     state_action_t = np.array([env.physics.data.qpos[0], env.physics.data.qvel[0], action])
-            # print(state_action_t)
-            state_action_t = np.hstack((time_step.observation['orientation'], time_step.observation['velocity'], action))
-            trajectory += [state_action_t]
+            action = 0
+            # action = np.random.uniform(action_spec.minimum,
+                                       # action_spec.maximum,
+                                       # size=action_spec.shape)
 
-            for i in range(4):
-                time_step = env.step(action)
+            state_action_t = np.hstack((env.physics.data.qpos[0], time_step.observation['orientation'],
+                                        time_step.observation['velocity'], action))
+            trajectory += [state_action_t]
+            time_step = env.step(action)
 
         trajectory = np.array(trajectory)
         trajectories += [trajectory]
 
     trajectories = np.array(trajectories)
 
-    np.save('./pend_data/pendulum_200_step_train_skip', trajectories)
+    np.save('./pend_data/pendulum_no_action_train', trajectories)
 
 
 if __name__ == '__main__':
