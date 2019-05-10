@@ -31,7 +31,7 @@ def view_env():
 
 def collect_pendulum_data():
 
-    num_runs = 10000
+    num_runs = 1000
     traj_horizon = 4.0
 
     env = suite.load(domain_name="pendulum", task_name="swingup", task_kwargs={'time_limit': traj_horizon})
@@ -60,7 +60,7 @@ def collect_pendulum_data():
 
     trajectories = np.array(trajectories)
 
-    np.save('./pend_data/pendulum_no_action_train', trajectories)
+    np.save('./pend_data/pendulum_no_action_valid', trajectories)
 
 
 if __name__ == '__main__':
