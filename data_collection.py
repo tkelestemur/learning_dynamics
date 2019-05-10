@@ -9,7 +9,7 @@ def view_env():
     env.physics.model.dof_damping[0] = 0.0
     # env.physics.model.timestep = 1
     # env.n_sub_steps = 100
-    env.physics.model.actuator_ctrllimited[0] = False
+    # env.physics.model.actuator_ctrllimited[0] = False
     # time_step = env.reset()
 
     action_spec = env.action_spec()
@@ -21,12 +21,16 @@ def view_env():
         #     print('qpos {} qvel {}'.format(2*np.pi + env.physics.data.qpos[0], env.physics.data.qvel[0]))
         # else:
         #     print('qpos {} qvel {}'.format(env.physics.data.qpos[0], env.physics.data.qvel[0]))
-        # print(time_step.observation['orientation'])
+
         a = 0.2
         print(env.physics.data.time)
         return a
 
-    viewer.launch(env, policy=random_policy)
+    def no_action_poilciy(time_step):
+        print(time_step.observation['orientation'])
+        return 0.0
+
+    viewer.launch(env, policy=no_action_poilciy)
 
 
 def collect_pendulum_data():
@@ -64,5 +68,5 @@ def collect_pendulum_data():
 
 
 if __name__ == '__main__':
-    collect_pendulum_data()
-    # view_env()
+    # collect_pendulum_data()
+    view_env()
