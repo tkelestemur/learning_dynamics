@@ -3,18 +3,19 @@ from torch.utils.data import DataLoader
 from networks.action_conditional_lstm import ActionCondLSTM
 from networks.lstm_autoencoder import LSTMAutoEncoder
 from networks.linear_autoencoder import LinearAutoEncoder
+from networks import temporal_vae
 from data import PendulumDataset
 from utils import Config
 import utils
 
-pend_train_data = PendulumDataset('train')
-pend_valid_data = PendulumDataset('valid')
+# pend_train_data = PendulumDataset('train')
+# pend_valid_data = PendulumDataset('valid')
 
-pend_train_loader = DataLoader(dataset=pend_train_data, batch_size=32,
-                               drop_last=True, shuffle=False, num_workers=4)
-
-pend_valid_loader = DataLoader(dataset=pend_valid_data, batch_size=len(pend_valid_data),
-                               drop_last=False, shuffle=False, num_workers=2)
+# pend_train_loader = DataLoader(dataset=pend_train_data, batch_size=32,
+#                                drop_last=True, shuffle=False, num_workers=4)
+#
+# pend_valid_loader = DataLoader(dataset=pend_valid_data, batch_size=len(pend_valid_data),
+#                                drop_last=False, shuffle=False, num_workers=2)
 
 
 # def train_action_cond_lstm():
@@ -46,7 +47,7 @@ def train_lstm_auto_encoder(config):
     checkpoint_path = './checkpoints/lstm_auto_encoder/' + config.checkpoint_path
     loss_path = './loss/lstm_auto_encoder/' + config.loss_path
     device = utils.get_device()
-    
+
     model = LSTMAutoEncoder(input_size=config.input_size,
                             action_size=config.action_size,
                             hidden_size=config.hidden_size,
@@ -67,9 +68,36 @@ def train_lstm_auto_encoder(config):
                       save_model=config.save)
 
 
+def train_temporal_vae():
+
+    config = Config('./configs/config_temporal_vae.yaml')
+    checkpoint_path = './checkpoints/temporal_vae/' + config.checkpoint_path
+    loss_path = '/loss/temporal_vae/' + config.loss_path
+
+    pend_train_data = PendulumDataset('train')
+    pend_valid_data = PendulumDataset('valid')
+
+    pend_train_loader = DataLoader(dataset=pend_train_data,
+                                   batch_size=config.batch_size,
+                                   drop_last=True,
+                                   shuffle=False,
+                                   num_workers=4)
+
+    pend_valid_loader = DataLoader(dataset=pend_valid_data,
+                                   batch_size=len(pend_valid_data),
+                                   drop_last=False,
+                                   shuffle=False,
+                                   num_workers=2)
+
+    model = temporal_vae.TemporalVAE(input_size=config.input_size,
+                                     hidden_size=config.hidden_size,
+                                     latent_size=config.latent_size)
+
+    temporal_vae.train(model, config, pend_train_loader, pend_valid_loader)
+
+
 
 if __name__ == '__main__':
-    config = Config('config.yaml')
-    train_lstm_auto_encoder(config)
-    # train_linear_auto_encoder(config['parameters'])
+    train_temporal_vae()
+    # train_lstm_auto_encoder(config)
     # train_action_cond_lstm()

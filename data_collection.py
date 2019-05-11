@@ -27,7 +27,7 @@ def view_env():
         return a
 
     def no_action_poilciy(time_step):
-        print(time_step.observation['orientation'])
+        print(np.hstack((env.physics.named.data.qpos['hinge'], env.physics.named.data.qvel['hinge'])))
         return 0.0
 
     viewer.launch(env, policy=no_action_poilciy)
@@ -66,7 +66,26 @@ def collect_pendulum_data():
 
     np.save('./pend_data/pendulum_no_action_valid', trajectories)
 
+def pendulum_no_acition_data():
+    num_runs = 100000
+    env = suite.load(domain_name="pendulum", task_name="swingup")
+
+    states = []
+    for run_i in tqdm(range(num_runs)):
+
+        time_step = env.reset()
+        state_init = np.hstack((env.physics.named.data.qpos['hinge'], env.physics.named.data.qvel['hinge']))
+
+        next_time_step = env.step(0.0)
+        state_next = np.hstack((env.physics.named.data.qpos['hinge'], env.physics.named.data.qvel['hinge']))
+
+        state = np.hstack((state_init, state_next))
+        states += [state]
+
+    states = np.array(states)
+    np.save('./pend_data/pendulum_no_action_train', states)
 
 if __name__ == '__main__':
     # collect_pendulum_data()
-    view_env()
+    pendulum_no_acition_data()
+    # view_env()

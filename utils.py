@@ -5,15 +5,22 @@ import yaml
 
 class Config:
 
-    def __init__(self, config_path):
-        with open('config.yaml', 'r') as f:
-            config = yaml.load(f)
+    def __init__(self, config_path=None):
+        try:
+            with open(config_path, 'r') as f:
+                config = yaml.load(f)
+        except FileNotFoundError as err:
+            print(err)
+        except TypeError:
+            print('config path is not defined!')
 
         self.input_size = config['input_size']
         self.action_size = config['action_size']
         self.k_step = config['k_step']
         self.hidden_size = config['hidden_size']
+        self.latent_size = config['latent_size']
         self.num_layers = config['num_layers']
+        self.batch_size = config['batch_size']
         self.bias = config['bias']
         self.num_epochs = config['num_epochs']
         self.lr = config['lr']
@@ -23,7 +30,7 @@ class Config:
         self.curr_learning = config['curr_learning']
         self.pre_trained_path = config['pre_trained_path']
 
-        config_prefix = str(self.hidden_size) + 'h_' + str(self.k_step) + 'step_' + str(self.num_epochs) + '_epochs_' + self.encoding 
+        config_prefix = str(self.hidden_size) + 'h_' + str(self.k_step) + 'step_' + str(self.num_epochs) + '_epochs_' + self.encoding
         self.loss_path = config_prefix + '.csv'
         self.checkpoint_path =  config_prefix + '.pth'
 
