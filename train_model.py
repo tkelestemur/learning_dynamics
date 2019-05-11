@@ -73,6 +73,8 @@ def train_temporal_vae():
     config = Config('./configs/config_temporal_vae.yaml')
     checkpoint_path = './checkpoints/temporal_vae/' + config.checkpoint_path
     loss_path = '/loss/temporal_vae/' + config.loss_path
+    device = utils.get_device()
+
 
     pend_train_data = PendulumDataset('train')
     pend_valid_data = PendulumDataset('valid')
@@ -91,10 +93,9 @@ def train_temporal_vae():
 
     model = temporal_vae.TemporalVAE(input_size=config.input_size,
                                      hidden_size=config.hidden_size,
-                                     latent_size=config.latent_size)
+                                     latent_size=config.latent_size).to(device)
 
-    temporal_vae.train(model, config, pend_train_loader, pend_valid_loader)
-
+    temporal_vae.train(model, config, pend_train_loader, pend_valid_loader, device)
 
 
 if __name__ == '__main__':

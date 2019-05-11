@@ -74,10 +74,9 @@ def evaluate_epoch(model, valid_data_loader, device):
     return eval_loss
 
 
-def train(model, config, train_data_loader, valid_data_loader):
+def train(model, config, train_data_loader, valid_data_loader, device):
 
     optimizer = optim.Adam(params=model.parameters(), lr=config.lr)
-    device = utils.get_device()
     print('Starting training...')
     for epoch_i in range(config.num_epochs):
         train_loss = train_epoch(model, optimizer, train_data_loader, device)
