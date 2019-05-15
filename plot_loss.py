@@ -29,6 +29,37 @@ def plot_loss():
     # fig.tight_layout()
     plt.show()
 
+def plot_temporal_vae():
+    loss = np.genfromtxt('./loss/temporal_vae/30h_10l_0.001beta.csv', delimiter=',')
+
+    fig, axes = plt.subplots(2, 1)
+    # fig.suptitle('beta = 0.0001')
+
+    fig.set_size_inches(12, 8)
+    beta_str = str(0.001)
+    axes[0].set_title('Training Set - beta: ' + beta_str)
+    axes[0].set_ylabel('Loss')
+
+    axes[0].plot(loss[:, 0], label='total', linewidth=2)
+    axes[0].plot(loss[:, 1], label='reconstruction', linewidth=2)
+    axes[0].plot(loss[:, 2], label='prediction', linewidth=2)
+    axes[0].plot(loss[:, 3], label='kl divergence', linewidth=2)
+
+    axes[1].set_title('Validation Set - beta: ' + beta_str)
+    axes[1].set_xlabel('Number of Epochs')
+    axes[1].set_ylabel('Loss')
+    axes[1].legend(('training', 'validation'))
+
+    axes[1].plot(loss[:, 4], label='total', linewidth=2)
+    axes[1].plot(loss[:, 5], label='reconstruction', linewidth=2)
+    axes[1].plot(loss[:, 6], label='prediction', linewidth=2)
+    axes[1].plot(loss[:, 7], label='kl divergence', linewidth=2)
+
+    plt.legend()
+    plt.tight_layout()
+
+    plt.show()
 
 if __name__ == '__main__':
-    plot_loss()
+    # plot_loss()
+    plot_temporal_vae()

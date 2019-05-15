@@ -22,6 +22,7 @@ class Config:
         self.num_layers = config['num_layers']
         self.batch_size = config['batch_size']
         self.bias = config['bias']
+        self.beta = config['beta']
         self.num_epochs = config['num_epochs']
         self.lr = config['lr']
         self.save = config['save']
@@ -30,7 +31,7 @@ class Config:
         self.curr_learning = config['curr_learning']
         self.pre_trained_path = config['pre_trained_path']
 
-        config_prefix = str(self.hidden_size) + 'h_' + str(self.k_step) + 'step_' + str(self.num_epochs) + '_epochs_' + self.encoding
+        config_prefix = str(self.hidden_size) + 'h_' + str(self.latent_size) + 'l_' + str(self.beta) + 'beta' + self.prefix
         self.loss_path = config_prefix + '.csv'
         self.checkpoint_path =  config_prefix + '.pth'
 
