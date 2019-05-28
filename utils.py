@@ -30,6 +30,7 @@ class Config:
         self.prefix = config['prefix']
         self.curr_learning = config['curr_learning']
         self.pre_trained_path = config['pre_trained_path']
+        self.model_type = config['model_type']
 
         config_prefix = str(self.hidden_size) + 'h_' + str(self.latent_size) + 'l_' + str(self.beta) + 'beta' + self.prefix
         self.loss_path = config_prefix + '.csv'
@@ -51,9 +52,10 @@ def save_checkpoint(state, checkpoint_path, is_best, save_only_best=True):
         checkpoint_best_path = checkpoint_path.replace('.pth', '_best.pth')
         torch.save(state, checkpoint_best_path)
 
+
 def load_checkpoint(model, checkpoint_path, device):
     if not os.path.exists(checkpoint_path):
-        raise("File doesn't exist {}".format(checkpoint))
+        raise("File doesn't exist {}".format(checkpoint_path))
     checkpoint = torch.load(checkpoint_path, map_location=device)
     model.load_state_dict(checkpoint, strict=True)
 

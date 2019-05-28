@@ -30,7 +30,7 @@ def plot_loss():
     plt.show()
 
 def plot_temporal_vae():
-    loss = np.genfromtxt('./loss/temporal_vae/30h_10l_0.001beta.csv', delimiter=',')
+    loss = np.genfromtxt('./loss/temporal_vae/10h_4l_0.0001beta_1step.csv', delimiter=',')
 
     fig, axes = plt.subplots(2, 1)
     # fig.suptitle('beta = 0.0001')

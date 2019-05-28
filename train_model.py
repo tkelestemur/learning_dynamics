@@ -43,29 +43,29 @@ import utils
 #                       valid_data_loader=pend_valid_loader, device=device, save_model=config['save'])
 
 
-def train_lstm_auto_encoder(config):
-    checkpoint_path = './checkpoints/lstm_auto_encoder/' + config.checkpoint_path
-    loss_path = './loss/lstm_auto_encoder/' + config.loss_path
-    device = utils.get_device()
-
-    model = LSTMAutoEncoder(input_size=config.input_size,
-                            action_size=config.action_size,
-                            hidden_size=config.hidden_size,
-                            num_layers=config.num_layers,
-                            bias=config.bias,
-                            lr=config.lr,
-                            k_step=config.k_step,
-                            checkpoint_path=checkpoint_path,
-                            loss_path=loss_path).to(device)
-
-    if config.curr_learning:
-        utils.load_checkpoint(model, config.pre_trained_path, device)
-
-    model.train_model(num_epochs=config.num_epochs,
-                      train_data_loader=pend_train_loader,
-                      valid_data_loader=pend_valid_loader,
-                      device=device,
-                      save_model=config.save)
+# def train_lstm_auto_encoder(config):
+#     checkpoint_path = './checkpoints/lstm_auto_encoder/' + config.checkpoint_path
+#     loss_path = './loss/lstm_auto_encoder/' + config.loss_path
+#     device = utils.get_device()
+#
+#     model = LSTMAutoEncoder(input_size=config.input_size,
+#                             action_size=config.action_size,
+#                             hidden_size=config.hidden_size,
+#                             num_layers=config.num_layers,
+#                             bias=config.bias,
+#                             lr=config.lr,
+#                             k_step=config.k_step,
+#                             checkpoint_path=checkpoint_path,
+#                             loss_path=loss_path).to(device)
+#
+#     if config.curr_learning:
+#         utils.load_checkpoint(model, config.pre_trained_path, device)
+#
+#     model.train_model(num_epochs=config.num_epochs,
+#                       train_data_loader=pend_train_loader,
+#                       valid_data_loader=pend_valid_loader,
+#                       device=device,
+#                       save_model=config.save)
 
 
 def train_temporal_vae():
@@ -75,14 +75,13 @@ def train_temporal_vae():
     loss_path = './loss/temporal_vae/' + config.loss_path
     device = utils.get_device()
 
-
     pend_train_data = PendulumDataset('train')
     pend_valid_data = PendulumDataset('valid')
 
     pend_train_loader = DataLoader(dataset=pend_train_data,
                                    batch_size=config.batch_size,
                                    drop_last=True,
-                                   shuffle=False,
+                                   shuffle=True,
                                    num_workers=4)
 
     pend_valid_loader = DataLoader(dataset=pend_valid_data,
@@ -93,7 +92,8 @@ def train_temporal_vae():
 
     model = temporal_vae.TemporalVAE(input_size=config.input_size,
                                      hidden_size=config.hidden_size,
-                                     latent_size=config.latent_size).to(device)
+                                     latent_size=config.latent_size,
+                                     k_step=config.k_step).to(device)
 
     temporal_vae.train(model=model,
                        config=config,
