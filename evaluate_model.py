@@ -71,7 +71,7 @@ def calculate_mse():
 
 def rollout_temporal_vae():
     config = utils.Config('./configs/config_temporal_vae.yaml')
-    checkpoint_path = './checkpoints/temporal_vae/16h_4l_0.0001beta_decoder_best.pth'
+    checkpoint_path = './checkpoints/temporal_vae/16h_4l_0beta_best.pth'
     model = temporal_vae.TemporalVAE(input_size=config.input_size,
                                      hidden_size=config.hidden_size,
                                      latent_size=config.latent_size,
@@ -87,7 +87,7 @@ def rollout_temporal_vae():
     data = np.load('./pend_data/pendulum_no_action_bounded_trajectory.npy')
     trajectory = torch.from_numpy(data[0, :, 0:2])
 
-    sim_init = True
+    sim_init = False
 
     states_net_dec = torch.zeros(100, 2)
     states_net = torch.zeros(100, 2)
@@ -106,75 +106,23 @@ def rollout_temporal_vae():
         with torch.no_grad():
 
             mu_t, logvar_t = model.encode(trajectory[0])
-            decoded_init = model.decode(mu_t)
             states_net[0] = trajectory[0]
-            latent_t = model.sample(mu_t, logvar_t)
 
             for t in range(1, trajectory.size(0)):
-                z_next = model.predict(latent_t)
+                z_next = model.predict(mu_t)
                 decoded_next = model.decode(z_next)
-                latent_t = z_next
-                # z_t = z_next
+                mu_t = z_next
                 states_net[t] = decoded_next
-                # print('true z: {}'.format(z_next_true))
-                # print('pred z: {}'.format(z_next))
 
     fig, ax = plt.subplots(1, 1)
     fig.set_size_inches(12, 8)
-    ax.set_title('Zero Torque Rollout - beta: 0.0001')
+    ax.set_title('Zero Torque Rollout - beta: 0.01')
     ax.set_xlabel('Timestep')
     ax.set_ylabel('State')
 
     ax.plot(trajectory[:, 0].numpy(), label='true state', linewidth=2.5)
-    ax.plot(states_net_dec[:, 0].numpy(), '--', label='reconstruction', linewidth=2.5)
-    ax.plot(states_net[:, 0].numpy(), '--', label='prediction', linewidth=2.5)
-
-    plt.legend()
-    plt.show()
-
-
-def test_vae():
-    config = utils.Config('./configs/config_temporal_vae.yaml')
-    checkpoint_path = './checkpoints/temporal_vae/30h_10l_0.0001beta_2step_det.pth'
-    model = temporal_vae.TemporalVAE(input_size=config.input_size,
-                                     hidden_size=config.hidden_size,
-                                     latent_size=config.latent_size,
-                                     k_step=config.k_step).eval()
-    utils.load_checkpoint(model, checkpoint_path, 'cpu')
-
-    pend_valid_data = PendulumDataset('valid')
-    trajectory = pend_valid_data[0]
-
-    with torch.no_grad():
-        state_init = trajectory[0:2]
-        mu_t, logvar_t = model.encode(state_init)
-        decoded_init = model.decode(mu_t)
-        # states_net[0] = state_init
-
-        print(trajectory[0:2])
-        print(decoded_init)
-
-        z_next = model.f_trainsition(mu_t)
-        decoded_next = model.decode(z_next)
-
-        print(trajectory[2:4])
-        print(decoded_next)
-
-        z_next = model.f_trainsition(z_next)
-        decoded_next = model.decode(z_next)
-
-        print(trajectory[4:6])
-        print(decoded_next)
-
-    fig, ax = plt.subplots(1, 1)
-    fig.set_size_inches(12, 8)
-    ax.set_title('Zero Torque Rollout - beta: 0.0001')
-    ax.set_xlabel('Timestep')
-    ax.set_ylabel('State')
-
-    ax.plot(trajectory[:, 0], label='true state', linewidth=2.5)
     # ax.plot(states_net_dec[:, 0].numpy(), '--', label='reconstruction', linewidth=2.5)
-    ax.plot(trajectory[:, 0].numpy(), '--', label='prediction', linewidth=2.5)
+    ax.plot(states_net[:, 0].numpy(), '--', label='prediction', linewidth=2.5)
 
     plt.legend()
     plt.show()

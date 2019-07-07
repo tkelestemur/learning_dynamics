@@ -56,12 +56,9 @@ class TemporalVAE(nn.Module):
         # Reconstruct the trajectory
         mu, logvar = self.encode(states[:, 0:2])
         latent = self.sample(mu, logvar)
-        recon_prev = self.decode(latent)
+        recon = self.decode(latent)
 
         z_next_pred = self.predict(latent)
-        recon_next = self.decode(z_next_pred)
-
-        recon = torch.cat((recon_next, recon_next), dim=1)
 
         mu_next, logvar_next = self.encode(states[:, 3:5])
         z_next_sampled = self.sample(mu_next, logvar_next)
@@ -69,7 +66,7 @@ class TemporalVAE(nn.Module):
         return recon, mu, logvar, z_next_sampled, z_next_pred
 
     def loss_func(self, recon, states, mu, logvar, z_next_sampled, z_next_pred):
-        MSE_REC = F.mse_loss(input=recon, target=torch.cat((states[:, 0:2],states[:, 3:5]), dim=1), reduction='sum')
+        MSE_REC = F.mse_loss(input=recon, target=states[:, 0:2], reduction='sum')
         MSE_PRED = F.mse_loss(input=z_next_pred, target=z_next_sampled, reduction='sum')
         KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
 
@@ -83,11 +80,12 @@ def train_epoch(model, optimizer, beta, train_data_loader, device):
         states_batch = states.to(device)
 
         optimizer.zero_grad()
+
         recon, mu, logvar, z_next_sampled, z_next_pred = model(states_batch)
         MSE_REC, MSE_PRED, KLD = model.loss_func(recon, states_batch, mu, logvar, z_next_sampled, z_next_pred)
-        loss = MSE_REC + MSE_PRED + beta * KLD
+        # loss = MSE_REC + beta * KLD + MSE_PRED
+        loss = MSE_REC + MSE_PRED
         loss.backward()
-
         total_loss += loss.item()
         recon_loss += MSE_REC.item()
         pred_loss += MSE_PRED.item()
@@ -115,7 +113,8 @@ def evaluate_epoch(model, beta, valid_data_loader, device):
 
             recon, mu, logvar, z_next_sampled, z_next_pred = model(states_batch)
             MSE_REC, MSE_PRED, KLD = model.loss_func(recon, states_batch, mu, logvar, z_next_sampled, z_next_pred)
-            loss = MSE_REC + MSE_PRED + beta * KLD
+            # loss = MSE_REC + MSE_PRED + beta * KLD
+            loss = MSE_REC + MSE_PRED
 
             total_loss += loss.item()
             recon_loss += MSE_REC.item()
