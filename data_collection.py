@@ -4,25 +4,23 @@ from tqdm import tqdm
 import numpy as np
 import torch
 
-def random_policy(time_step):
-    del time_step
-    a = np.random.uniform(-5.0, 5.0, size=action_spec.shape)
-    return a
-
-def no_action_policy(time_step):
-    return 0.0
 
 def view_env():
-    env = suite.load(domain_name="pendulum", task_name="swingup", task_kwargs={'time_limit': 4.0})
-    env.physics.model.dof_damping[0] = 0.0
-    # env.physics.model.timestep = 1
-    # env.n_sub_steps = 100
-    # env.physics.model.actuator_ctrllimited[0] = False
-    # time_step = env.reset()
 
+    env = suite.load(domain_name="point_mass", task_name="easy")
     action_spec = env.action_spec()
 
-    viewer.launch(env, policy=no_action_policy)
+    def no_action_policy(time_step):
+        del time_step
+        return np.zeros(2)
+
+    def random_action_policy(time_step):
+        del time_step
+        return np.random.uniform(low=action_spec.minimum,
+                                 high=action_spec.maximum,
+                                 size=action_spec.shape)
+
+    viewer.launch(env, policy=random_action_policy)
 
 
 def generate_trajectories():
@@ -70,5 +68,6 @@ def generate_states():
 
 
 if __name__ == "__main__":
-    generate_trajectories()
+    # generate_trajectories()
     # generate_states()
+    view_env()
