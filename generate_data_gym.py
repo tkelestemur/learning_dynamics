@@ -1,4 +1,6 @@
 import gym
+import numpy as np
+from tqdm import tqdm
 import torch
 
 
@@ -16,5 +18,24 @@ def view_env():
             env.render()
 
 
+def generate_rollouts():
+
+    num_runs = 2
+    rollouts = []
+    for run_i in tqdm(range(num_runs)):
+        rollout = []
+        obs, done = env.reset(), False
+        t = 0
+        while not done:
+            rollout.append(obs.tolist())
+            obs, reward, done, _ = env.step(0.0)
+
+        rollouts.append(rollout)
+
+    rollouts = np.array(list(rollouts))
+    print(rollouts.shape)
+
+
 if __name__ == '__main__':
-    view_env()
+    generate_rollouts()
+    # view_env()

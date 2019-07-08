@@ -7,7 +7,7 @@ import torch
 
 def view_env():
 
-    env = suite.load(domain_name="point_mass", task_name="easy")
+    env = suite.load(domain_name="pendulum", task_name="swingup")
     action_spec = env.action_spec()
 
     def no_action_policy(time_step):
